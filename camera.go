@@ -39,6 +39,8 @@ func (c Camera) ClearCanvas() {
 }
 
 func (c Camera) ProjectVertex(v rl.Vector3) Point {
+	// TODO: Calculate d = 1/tan(fovAngleRad/2)
+	// Near is another variable can be zNear
 	return Point{
 		x: v.X / v.Z,
 		y: v.Y * c.aspectRation / v.Z,
