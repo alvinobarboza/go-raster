@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -41,27 +39,15 @@ func (c Camera) ClearCanvas() {
 }
 
 func (c Camera) ProjectVertex(v rl.Vector3) Point {
-
-	// pvx = px / pz
-	// pvy = py * ar / pz
-
-	x := v.X / v.Z
-	y := v.Y * c.aspectRation / v.Z
-
 	return Point{
-		x: x,
-		y: y,
+		x: v.X / v.Z,
+		y: v.Y * c.aspectRation / v.Z,
 	}
 }
 
 func (c Camera) PutPixel(p Point) {
-	// psx = (pvx + 1) * (0.5*ScreenWidth - 0.5)
-	// psy = -py * (0.5*ScreenHeight - 0.5) + (0.5*ScreenHeight + 0.5)
-
-	x := int((p.x + 1) * (float32(c.width)*0.5 - .5))
-	y := int(-p.y*(.5*float32(c.height)-.5) + (0.5*float32(c.height) + .5))
-
-	fmt.Println(p, x, y)
+	x := int((p.x + 1) * 0.5 * float32(c.width))
+	y := int((1 - p.y) * 0.5 * float32(c.height))
 
 	if x < 0 || x >= c.width || y < 0 || y >= c.height {
 		return
