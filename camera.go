@@ -1,15 +1,16 @@
 package main
 
 import (
-	rl "github.com/gen2brain/raylib-go/raylib"
+	"image/color"
 )
 
 type Point struct {
-	x, y float32
+	x, y  float32
+	color color.RGBA
 }
 
 type Camera struct {
-	canvas      []rl.Color
+	canvas      []color.RGBA
 	fovAngle    float32
 	aspectRatio float32
 	fovScaling  float32
@@ -20,44 +21,53 @@ type Camera struct {
 }
 
 func NewCamera(w, h int, zNear, fovAngle float32) Camera {
-	return Camera{
-		fovAngle:    fovAngle,
-		fovScaling:  FovScaling(fovAngle),
-		width:       w,
-		height:      h,
-		halfWidth:   float32(w) / 2,
-		halfHeight:  float32(h) / 2,
-		canvas:      make([]rl.Color, w*h),
-		aspectRatio: float32(w) / float32(h),
+	c := Camera{
+		fovAngle:   fovAngle,
+		fovScaling: FovScaling(fovAngle),
 	}
+
+	c.UpdateCanvasSize(w, h)
+	return c
 }
 
 func (c *Camera) UpdateCanvasSize(w, h int) {
 	c.width = w
 	c.height = h
-	c.canvas = make([]rl.Color, w*h)
+	c.halfWidth = float32(w) / 2
+	c.halfHeight = float32(h) / 2
+	c.aspectRatio = float32(w) / float32(h)
+	c.canvas = make([]color.RGBA, w*h)
 }
 
 func (c Camera) ClearCanvas() {
 	for i := range len(c.canvas) {
-		c.canvas[i] = rl.RayWhite
+		c.canvas[i].R = 240
+		c.canvas[i].G = 240
+		c.canvas[i].B = 240
+		c.canvas[i].A = 255
 	}
 }
 
-func (c Camera) ProjectVertex(v rl.Vector3) Point {
+func (c Camera) ProjectVertex(v Vec3) Point {
 	return Point{
 		x: (v.X * c.fovScaling) / (v.Z * c.aspectRatio),
 		y: (v.Y * c.fovScaling) / v.Z,
 	}
 }
 
+func (c Camera) NDCtoScreen(p Point) (x int, y int) {
+	x = int((p.x + 1) * c.halfWidth)
+	y = int((1 - p.y) * c.halfHeight)
+
+	return x, y
+}
+
 func (c Camera) PutPixel(p Point) {
-	x := int((p.x + 1) * c.halfWidth)
-	y := int((1 - p.y) * c.halfHeight)
+	x, y := c.NDCtoScreen(p)
 
 	if x < 0 || x >= c.width || y < 0 || y >= c.height {
 		return
 	}
 
-	c.canvas[y*c.width+x] = rl.Black
+	c.canvas[y*c.width+x] = p.color
 }

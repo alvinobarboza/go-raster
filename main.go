@@ -15,15 +15,15 @@ func main() {
 
 	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
 
-	plane := [8]rl.Vector3{
-		rl.NewVector3(1.0, 1.0, 2.0),   // 0 front top right
-		rl.NewVector3(-1.0, 1.0, 2.0),  // 1 front top left
-		rl.NewVector3(-1.0, -1.0, 2.0), // 2 front bottom left
-		rl.NewVector3(1.0, -1.0, 2.0),  // 3 front bottom rigth
-		rl.NewVector3(1.0, 1.0, 3.0),   // 4 back top right
-		rl.NewVector3(-1.0, 1.0, 3.0),  // 5 back top left
-		rl.NewVector3(-1.0, -1.0, 3.0), // 6 back bottom left
-		rl.NewVector3(1.0, -1.0, 3.0),  // 7 back bottom right
+	plane := [8]Vec3{
+		NewVec3(1.0, 1.0, 2.0),   // 0 front top right
+		NewVec3(-1.0, 1.0, 2.0),  // 1 front top left
+		NewVec3(-1.0, -1.0, 2.0), // 2 front bottom left
+		NewVec3(1.0, -1.0, 2.0),  // 3 front bottom rigth
+		NewVec3(1.0, 1.0, 3.0),   // 4 back top right
+		NewVec3(-1.0, 1.0, 3.0),  // 5 back top left
+		NewVec3(-1.0, -1.0, 3.0), // 6 back bottom left
+		NewVec3(1.0, -1.0, 3.0),  // 7 back bottom right
 	}
 
 	// rl.SetConfigFlags(rl.FlagWindowResizable)
@@ -31,7 +31,7 @@ func main() {
 	rl.InitWindow(ScreenWidth, ScreenHeight, "go-raster")
 	defer rl.CloseWindow()
 
-	img := rl.GenImageColor(ScreenWidth/4, ScreenHeight/4, rl.RayWhite)
+	img := rl.GenImageColor(camera.width, camera.height, rl.RayWhite)
 	defer rl.UnloadImage(img)
 
 	renderTexture := rl.LoadTextureFromImage(img)
@@ -66,6 +66,7 @@ func main() {
 			plane[i].X += float32(leftRight)
 			plane[i].Z += float32(backForward)
 			p := camera.ProjectVertex(plane[i])
+			p.color = rl.Black
 			camera.PutPixel(p)
 		}
 
