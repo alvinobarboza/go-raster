@@ -9,20 +9,26 @@ type Point struct {
 }
 
 type Camera struct {
-	canvas       []rl.Color
-	viewDistance float32
-	width        int
-	height       int
-	aspectRation float32
+	canvas      []rl.Color
+	fovAngle    float32
+	aspectRatio float32
+	fovScaling  float32
+	zNear       float32
+
+	width, height         int
+	halfWidth, halfHeight float32
 }
 
-func NewCamera(w, h int, d float32) Camera {
+func NewCamera(w, h int, zNear, fovAngle float32) Camera {
 	return Camera{
-		viewDistance: d,
-		width:        w,
-		height:       h,
-		canvas:       make([]rl.Color, w*h),
-		aspectRation: float32(w) / float32(h),
+		fovAngle:    fovAngle,
+		fovScaling:  FovScaling(fovAngle),
+		width:       w,
+		height:      h,
+		halfWidth:   float32(w) / 2,
+		halfHeight:  float32(h) / 2,
+		canvas:      make([]rl.Color, w*h),
+		aspectRatio: float32(w) / float32(h),
 	}
 }
 
@@ -39,17 +45,15 @@ func (c Camera) ClearCanvas() {
 }
 
 func (c Camera) ProjectVertex(v rl.Vector3) Point {
-	// TODO: Calculate d = 1/tan(fovAngleRad/2)
-	// Near is another variable can be zNear
 	return Point{
-		x: v.X / v.Z,
-		y: v.Y * c.aspectRation / v.Z,
+		x: (v.X * c.fovScaling) / (v.Z * c.aspectRatio),
+		y: (v.Y * c.fovScaling) / v.Z,
 	}
 }
 
 func (c Camera) PutPixel(p Point) {
-	x := int((p.x + 1) * 0.5 * float32(c.width))
-	y := int((1 - p.y) * 0.5 * float32(c.height))
+	x := int((p.x + 1) * c.halfWidth)
+	y := int((1 - p.y) * c.halfHeight)
 
 	if x < 0 || x >= c.width || y < 0 || y >= c.height {
 		return

@@ -5,23 +5,25 @@ import (
 )
 
 const (
-	ScreenWidth  = 1600
+	ScreenWidth  = 900
 	ScreenHeight = 900
+
+	NearPlane = 0.2
 )
 
 func main() {
 
-	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, 1)
+	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
 
 	plane := [8]rl.Vector3{
 		rl.NewVector3(1.0, 1.0, 2.0),   // 0 front top right
 		rl.NewVector3(-1.0, 1.0, 2.0),  // 1 front top left
-		rl.NewVector3(-2.0, -1.0, 1.0), // 2 front bottom left
-		rl.NewVector3(2.0, -1.0, 1.0),  // 3 front bottom rigth
+		rl.NewVector3(-1.0, -1.0, 2.0), // 2 front bottom left
+		rl.NewVector3(1.0, -1.0, 2.0),  // 3 front bottom rigth
 		rl.NewVector3(1.0, 1.0, 3.0),   // 4 back top right
 		rl.NewVector3(-1.0, 1.0, 3.0),  // 5 back top left
-		rl.NewVector3(-2.0, -1.0, 4.0), // 6 back bottom left
-		rl.NewVector3(2.0, -1.0, 4.0),  // 7 back bottom right
+		rl.NewVector3(-1.0, -1.0, 3.0), // 6 back bottom left
+		rl.NewVector3(1.0, -1.0, 3.0),  // 7 back bottom right
 	}
 
 	// rl.SetConfigFlags(rl.FlagWindowResizable)
