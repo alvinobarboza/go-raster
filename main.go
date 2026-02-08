@@ -14,7 +14,7 @@ const (
 func main() {
 
 	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
-	scene := NewScene(camera)
+	scene := NewScene(&camera)
 
 	cube := NewMesh([]Vec3{
 		NewVec3(1.0, 1.0, 2.0),   // 0 front top right

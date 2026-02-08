@@ -1,11 +1,11 @@
 package main
 
 type Scene struct {
-	activeCam Camera
+	activeCam *Camera
 	objects   []Mesh
 }
 
-func NewScene(c Camera) Scene {
+func NewScene(c *Camera) Scene {
 	return Scene{
 		activeCam: c,
 		objects:   make([]Mesh, 0),
