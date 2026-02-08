@@ -49,9 +49,11 @@ func (c Camera) ClearCanvas() {
 }
 
 func (c Camera) ProjectVertex(v Vec3) Point {
+	zXInverse := 1 / (v.Z * c.aspectRatio)
+	zYInverse := 1 / v.Z
 	return Point{
-		x: (v.X * c.fovScaling) / (v.Z * c.aspectRatio),
-		y: (v.Y * c.fovScaling) / v.Z,
+		x: (v.X * c.fovScaling) * zXInverse,
+		y: (v.Y * c.fovScaling) * zYInverse,
 	}
 }
 
