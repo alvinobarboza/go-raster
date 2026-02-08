@@ -26,7 +26,7 @@ func main() {
 		NewVec3(1.0, -1.0, 3.0),  // 7 back bottom right
 	}
 
-	// rl.SetConfigFlags(rl.FlagWindowResizable)
+	rl.SetConfigFlags(rl.FlagWindowResizable)
 
 	rl.InitWindow(ScreenWidth, ScreenHeight, "go-raster")
 	defer rl.CloseWindow()
@@ -41,6 +41,13 @@ func main() {
 	leftRight := 0.0
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
+		if rl.IsWindowResized() {
+			camera.UpdateCanvasSize(rl.GetScreenWidth()/4, rl.GetScreenHeight()/4)
+			rl.ImageResize(img, int32(camera.width), int32(camera.height))
+			rl.UnloadTexture(renderTexture)
+			renderTexture = rl.LoadTextureFromImage(img)
+		}
+
 		camera.ClearCanvas()
 
 		backForward = 0
@@ -78,7 +85,7 @@ func main() {
 		rl.DrawTexturePro(
 			renderTexture,
 			rl.Rectangle{X: 0, Y: 0, Width: float32(camera.width), Height: float32(camera.height)},
-			rl.Rectangle{X: 0, Y: 0, Width: float32(ScreenWidth), Height: float32(ScreenHeight)},
+			rl.Rectangle{X: 0, Y: 0, Width: float32(rl.GetScreenWidth()), Height: float32(rl.GetScreenHeight())},
 			rl.Vector2Zero(),
 			0,
 			rl.White,
