@@ -75,8 +75,8 @@ func main() {
 		}
 
 		for i := range cube.vertices {
-			cube.vertices[i].X += float32(leftRight)
-			cube.vertices[i].Z += float32(backForward)
+			cube.vertices[i].X += leftRight
+			cube.vertices[i].Z += backForward
 		}
 		scene.Render()
 

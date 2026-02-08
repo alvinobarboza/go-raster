@@ -11,14 +11,14 @@ const (
 )
 
 type Vec3 struct {
-	X, Y, Z float32
+	X, Y, Z float64
 }
 
-func NewVec3(x, y, z float32) Vec3 {
+func NewVec3(x, y, z float64) Vec3 {
 	return Vec3{x, y, z}
 }
 
-type Matrix [M4x4]float32
+type Matrix [M4x4]float64
 
 func NewIdentityMatrix() Matrix {
 	return Matrix{
@@ -39,14 +39,14 @@ func NewScaleMatrix(scale Vec3) Matrix {
 }
 
 func NewRotationMatrix(angle Vec3) Matrix {
-	cosa := float32(math.Cos(float64(angle.X * -DegToRad)))
-	sina := float32(math.Sin(float64(angle.X * -DegToRad)))
+	cosa := math.Cos(angle.X * -DegToRad)
+	sina := math.Sin(angle.X * -DegToRad)
 
-	cosb := float32(math.Cos(float64(angle.Y * -DegToRad)))
-	sinb := float32(math.Sin(float64(angle.Y * -DegToRad)))
+	cosb := math.Cos(angle.Y * -DegToRad)
+	sinb := math.Sin(angle.Y * -DegToRad)
 
-	cosga := float32(math.Cos(float64(angle.Z * -DegToRad)))
-	singa := float32(math.Sin(float64(angle.Z * -DegToRad)))
+	cosga := math.Cos(angle.Z * -DegToRad)
+	singa := math.Sin(angle.Z * -DegToRad)
 
 	// Formula for general 3D roation using matrix
 	return Matrix{
@@ -78,8 +78,8 @@ func (m Matrix) Transposed() Matrix {
 }
 
 func (m Matrix) MultiplyByVec3(v Vec3) Vec3 {
-	v4 := [MatLength]float32{v.X, v.Y, v.Z, 1.0}
-	result := [MatLength]float32{0.0, 0.0, 0.0, 0.0}
+	v4 := [MatLength]float64{v.X, v.Y, v.Z, 1.0}
+	result := [MatLength]float64{0.0, 0.0, 0.0, 0.0}
 
 	for row := range MatLength {
 		for col := range MatLength {
@@ -110,6 +110,6 @@ type Tranforms struct {
 	matrixTransforms Matrix
 }
 
-func FovScaling(angle float32) float32 {
-	return 1 / float32(math.Tan(float64(angle*DegToRad/2)))
+func FovScaling(angle float64) float64 {
+	return 1 / math.Tan(angle*DegToRad/2)
 }

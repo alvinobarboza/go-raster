@@ -5,22 +5,22 @@ import (
 )
 
 type Point struct {
-	x, y  float32
+	x, y  float64
 	color color.RGBA
 }
 
 type Camera struct {
 	canvas      []color.RGBA
-	fovAngle    float32
-	aspectRatio float32
-	fovScaling  float32
-	zNear       float32
+	fovAngle    float64
+	aspectRatio float64
+	fovScaling  float64
+	zNear       float64
 
 	width, height         int
-	halfWidth, halfHeight float32
+	halfWidth, halfHeight float64
 }
 
-func NewCamera(w, h int, zNear, fovAngle float32) Camera {
+func NewCamera(w, h int, zNear, fovAngle float64) Camera {
 	c := Camera{
 		fovAngle:   fovAngle,
 		fovScaling: FovScaling(fovAngle),
@@ -33,9 +33,9 @@ func NewCamera(w, h int, zNear, fovAngle float32) Camera {
 func (c *Camera) UpdateCanvasSize(w, h int) {
 	c.width = w
 	c.height = h
-	c.halfWidth = float32(w) / 2
-	c.halfHeight = float32(h) / 2
-	c.aspectRatio = float32(w) / float32(h)
+	c.halfWidth = float64(w) / 2
+	c.halfHeight = float64(h) / 2
+	c.aspectRatio = float64(w) / float64(h)
 	c.canvas = make([]color.RGBA, w*h)
 }
 
