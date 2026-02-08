@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type Scene struct {
 	activeCam Camera
 	objects   []Mesh
@@ -23,7 +21,6 @@ func (s Scene) Render() {
 		for _, v := range o.vertices {
 			p := s.activeCam.ProjectVertex(v)
 			p.color = o.color
-			fmt.Println(p)
 			s.activeCam.PutPixel(p)
 		}
 	}
