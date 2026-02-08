@@ -18,6 +18,37 @@ func NewVec3(x, y, z float64) Vec3 {
 	return Vec3{x, y, z}
 }
 
+func (v Vec3) MultiplyByVec3(v1 Vec3) float64 {
+	return v.X*v1.X + v.Y*v1.Y + v.Z*v1.Z
+}
+
+func (v Vec3) Dot() float64 {
+	return v.MultiplyByVec3(v)
+}
+
+func (v Vec3) Length() float64 {
+	return math.Sqrt(v.Length())
+}
+
+func (v Vec3) Scale(n float64) Vec3 {
+	return Vec3{
+		X: v.X * n,
+		Y: v.Y * n,
+		Z: v.Z * n,
+	}
+}
+
+func (v Vec3) Divide(n float64) Vec3 {
+	if n == 0 {
+		return Vec3{}
+	}
+	return v.Scale(1 / n)
+}
+
+func (v Vec3) Normalized() Vec3 {
+	return v.Divide(v.Length())
+}
+
 type Matrix [M4x4]float64
 
 func NewIdentityMatrix() Matrix {
