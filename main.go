@@ -14,8 +14,9 @@ const (
 func main() {
 
 	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
+	scene := NewScene(camera)
 
-	plane := [8]Vec3{
+	cube := NewMesh([]Vec3{
 		NewVec3(1.0, 1.0, 2.0),   // 0 front top right
 		NewVec3(-1.0, 1.0, 2.0),  // 1 front top left
 		NewVec3(-1.0, -1.0, 2.0), // 2 front bottom left
@@ -24,7 +25,11 @@ func main() {
 		NewVec3(-1.0, 1.0, 3.0),  // 5 back top left
 		NewVec3(-1.0, -1.0, 3.0), // 6 back bottom left
 		NewVec3(1.0, -1.0, 3.0),  // 7 back bottom right
-	}
+	}, rl.Black)
+
+	scene.AddMesh(
+		cube,
+	)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -69,15 +74,13 @@ func main() {
 			leftRight = .1
 		}
 
-		for i := range plane {
-			plane[i].X += float32(leftRight)
-			plane[i].Z += float32(backForward)
-			p := camera.ProjectVertex(plane[i])
-			p.color = rl.Black
-			camera.PutPixel(p)
+		for i := range cube.vertices {
+			cube.vertices[i].X += float32(leftRight)
+			cube.vertices[i].Z += float32(backForward)
 		}
+		scene.Render()
 
-		rl.UpdateTexture(renderTexture, camera.canvas)
+		rl.UpdateTexture(renderTexture, scene.activeCam.canvas)
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
