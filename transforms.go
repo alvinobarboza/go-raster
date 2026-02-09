@@ -188,7 +188,19 @@ func (m Matrix) MultiplyByMatrix(m2 Matrix) Matrix {
 type Tranforms struct {
 	scale, rotation, position Vec3
 
+	scaleMat         Matrix
+	rotationMat      Matrix
+	translationMat   Matrix
 	matrixTransforms Matrix
+}
+
+func (t *Tranforms) UpdateTransforms() {
+	t.rotationMat = NewRotationMatrix(t.rotation)
+	t.scaleMat = NewScaleMatrix(t.scale)
+	t.translationMat = NewTranslationMatrix(t.position)
+
+	t.matrixTransforms = t.rotationMat.MultiplyByMatrix(t.scaleMat)
+	t.matrixTransforms = t.matrixTransforms.MultiplyByMatrix(t.translationMat)
 }
 
 func FovScaling(angle float32) float32 {
