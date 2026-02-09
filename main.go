@@ -42,8 +42,8 @@ func main() {
 	renderTexture := rl.LoadTextureFromImage(img)
 	defer rl.UnloadTexture(renderTexture)
 
-	backForward := 0.0
-	leftRight := 0.0
+	backForward := float32(0.0)
+	leftRight := float32(0.0)
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		if rl.IsWindowResized() {

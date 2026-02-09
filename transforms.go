@@ -11,26 +11,26 @@ const (
 )
 
 type Vec3 struct {
-	X, Y, Z float64
+	X, Y, Z float32
 }
 
-func NewVec3(x, y, z float64) Vec3 {
+func NewVec3(x, y, z float32) Vec3 {
 	return Vec3{x, y, z}
 }
 
-func (v Vec3) MultiplyByVec3(v1 Vec3) float64 {
+func (v Vec3) MultiplyByVec3(v1 Vec3) float32 {
 	return v.X*v1.X + v.Y*v1.Y + v.Z*v1.Z
 }
 
-func (v Vec3) Dot() float64 {
+func (v Vec3) Dot() float32 {
 	return v.MultiplyByVec3(v)
 }
 
-func (v Vec3) Length() float64 {
-	return math.Sqrt(v.Dot())
+func (v Vec3) Length() float32 {
+	return float32(math.Sqrt(float64(v.Dot())))
 }
 
-func (v Vec3) Scale(n float64) Vec3 {
+func (v Vec3) Scale(n float32) Vec3 {
 	return Vec3{
 		X: v.X * n,
 		Y: v.Y * n,
@@ -38,7 +38,7 @@ func (v Vec3) Scale(n float64) Vec3 {
 	}
 }
 
-func (v Vec3) Divide(n float64) Vec3 {
+func (v Vec3) Divide(n float32) Vec3 {
 	if n == 0 {
 		return Vec3{}
 	}
@@ -49,7 +49,7 @@ func (v Vec3) Normalized() Vec3 {
 	return v.Divide(v.Length())
 }
 
-type Matrix [M4x4]float64
+type Matrix [M4x4]float32
 
 func NewIdentityMatrix() Matrix {
 	return Matrix{
@@ -70,14 +70,14 @@ func NewScaleMatrix(scale Vec3) Matrix {
 }
 
 func NewRotationMatrix(angle Vec3) Matrix {
-	cosa := math.Cos(angle.X * -DegToRad)
-	sina := math.Sin(angle.X * -DegToRad)
+	cosa := float32(math.Cos(float64(angle.X * -DegToRad)))
+	sina := float32(math.Sin(float64(angle.X * -DegToRad)))
 
-	cosb := math.Cos(angle.Y * -DegToRad)
-	sinb := math.Sin(angle.Y * -DegToRad)
+	cosb := float32(math.Cos(float64(angle.Y * -DegToRad)))
+	sinb := float32(math.Sin(float64(angle.Y * -DegToRad)))
 
-	cosga := math.Cos(angle.Z * -DegToRad)
-	singa := math.Sin(angle.Z * -DegToRad)
+	cosga := float32(math.Cos(float64(angle.Z * -DegToRad)))
+	singa := float32(math.Sin(float64(angle.Z * -DegToRad)))
 
 	// Formula for general 3D roation using matrix
 	return Matrix{
@@ -109,8 +109,8 @@ func (m Matrix) Transposed() Matrix {
 }
 
 func (m Matrix) MultiplyByVec3(v Vec3) Vec3 {
-	v4 := [MatLength]float64{v.X, v.Y, v.Z, 1.0}
-	result := [MatLength]float64{0.0, 0.0, 0.0, 0.0}
+	v4 := [MatLength]float32{v.X, v.Y, v.Z, 1.0}
+	result := [MatLength]float32{0.0, 0.0, 0.0, 0.0}
 
 	for row := range MatLength {
 		for col := range MatLength {
@@ -141,6 +141,6 @@ type Tranforms struct {
 	matrixTransforms Matrix
 }
 
-func FovScaling(angle float64) float64 {
-	return 1 / math.Tan(angle*DegToRad/2)
+func FovScaling(angle float32) float32 {
+	return float32(1 / math.Tan(float64(angle*DegToRad/2)))
 }
