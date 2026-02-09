@@ -4,8 +4,13 @@ import (
 	"image/color"
 )
 
-type Point struct {
+type NDCPoint struct {
 	X, Y  float32
+	color color.RGBA
+}
+
+type ScreenPoint struct {
+	X, Y  int
 	color color.RGBA
 }
 
@@ -48,28 +53,30 @@ func (c Camera) ClearCanvas() {
 	}
 }
 
-func (c Camera) ProjectVertex(v Vec3) Point {
+func (c Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
 	zXInverse := 1 / (v.Z * c.aspectRatio)
 	zYInverse := 1 / v.Z
-	return Point{
-		X: (v.X * c.fovScaling) * zXInverse,
-		Y: (v.Y * c.fovScaling) * zYInverse,
+	return NDCPoint{
+		X:     (v.X * c.fovScaling) * zXInverse,
+		Y:     (v.Y * c.fovScaling) * zYInverse,
+		color: cl,
 	}
 }
 
-func (c Camera) NDCtoScreen(p Point) (x int, y int) {
-	x = int((p.X + 1) * c.halfWidth)
-	y = int((1 - p.Y) * c.halfHeight)
+func (c Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
+	x := int((p.X + 1) * c.halfWidth)
+	y := int((1 - p.Y) * c.halfHeight)
 
-	return x, y
+	return ScreenPoint{
+		X:     x,
+		Y:     y,
+		color: p.color,
+	}
 }
 
-func (c Camera) PutPixel(p Point) {
-	x, y := c.NDCtoScreen(p)
-
-	if x < 0 || x >= c.width || y < 0 || y >= c.height {
+func (c Camera) PutPixel(p ScreenPoint) {
+	if p.X < 0 || p.X >= c.width || p.Y < 0 || p.Y >= c.height {
 		return
 	}
-
-	c.canvas[y*c.width+x] = p.color
+	c.canvas[p.Y*c.width+p.X] = p.color
 }

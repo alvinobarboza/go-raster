@@ -8,6 +8,7 @@ var (
 	Blue   = color.RGBA{R: 0, G: 121, B: 241, A: 255}
 	Yellow = color.RGBA{R: 253, G: 249, B: 0, A: 255}
 	Purple = color.RGBA{R: 200, G: 122, B: 255, A: 255}
+	Black  = color.RGBA{R: 50, G: 50, B: 50, A: 255}
 )
 
 // CUBE === begging
