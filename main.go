@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	ScreenWidth  = 900
-	ScreenHeight = 900
+	ScreenWidth  = 1024
+	ScreenHeight = 768
 
 	NearPlane = 0.2
 )
