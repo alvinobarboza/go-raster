@@ -5,7 +5,7 @@ import (
 )
 
 type Point struct {
-	x, y  float32
+	X, Y  float32
 	color color.RGBA
 }
 
@@ -52,14 +52,14 @@ func (c Camera) ProjectVertex(v Vec3) Point {
 	zXInverse := 1 / (v.Z * c.aspectRatio)
 	zYInverse := 1 / v.Z
 	return Point{
-		x: (v.X * c.fovScaling) * zXInverse,
-		y: (v.Y * c.fovScaling) * zYInverse,
+		X: (v.X * c.fovScaling) * zXInverse,
+		Y: (v.Y * c.fovScaling) * zYInverse,
 	}
 }
 
 func (c Camera) NDCtoScreen(p Point) (x int, y int) {
-	x = int((p.x + 1) * c.halfWidth)
-	y = int((1 - p.y) * c.halfHeight)
+	x = int((p.X + 1) * c.halfWidth)
+	y = int((1 - p.Y) * c.halfHeight)
 
 	return x, y
 }
