@@ -3,7 +3,8 @@ package main
 import (
 	"image"
 	"image/color"
-	"image/jpeg"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"log"
 	"os"
@@ -11,6 +12,8 @@ import (
 
 type Triangle struct {
 	v1, v2, v3 int
+	u1, u2, u3 int
+	n1, n2, n3 int
 	color      color.RGBA
 }
 
@@ -20,8 +23,10 @@ type Texture struct {
 }
 
 type MeshData struct {
-	tris  []Triangle
-	verts []Vec3
+	tris    []Triangle
+	verts   []Vec3
+	normals []Vec3
+	uv      []Vec3
 
 	texture *Texture
 }
@@ -60,14 +65,12 @@ func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
 	return pixels, width, height, nil
 }
 
-func LoadDefaultTexture() *Texture {
-	image.RegisterFormat("jpeg", "\xff\xd8", jpeg.Decode, jpeg.DecodeConfig)
-
-	file, err := os.Open("./assets/default.jpg")
+func LoadTexture(path string) (*Texture, error) {
+	file, err := os.Open(path)
 
 	if err != nil {
 		log.Println("Error: File could not be opened")
-		panic(err)
+		return nil, err
 	}
 
 	defer file.Close()
@@ -76,14 +79,22 @@ func LoadDefaultTexture() *Texture {
 
 	if err != nil {
 		log.Println("Error: Image could not be decoded")
-		panic(err)
+		return nil, err
 	}
 
 	return &Texture{
 		width:  w,
 		height: h,
 		pixels: pixels,
+	}, nil
+}
+
+func LoadDefaultTexture() *Texture {
+	img, err := LoadTexture("./assets/default.jpg")
+	if err != nil {
+		panic(err)
 	}
+	return img
 }
 
 type BoundingSphere struct {
