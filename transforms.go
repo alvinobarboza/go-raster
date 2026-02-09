@@ -27,7 +27,7 @@ func (v Vec3) Dot() float64 {
 }
 
 func (v Vec3) Length() float64 {
-	return math.Sqrt(v.Length())
+	return math.Sqrt(v.Dot())
 }
 
 func (v Vec3) Scale(n float64) Vec3 {
