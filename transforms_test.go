@@ -64,6 +64,33 @@ func BenchmarkVecFloat64(t *testing.B) {
 	}
 }
 
+// Maintain brench
+func DivideVec3(v Vec3, n float32) Vec3 {
+	if n == 0 {
+		return NewVec3(0, 0, 0)
+	}
+
+	return Vec3{
+		X: v.X / n,
+		Y: v.Y / n,
+		Z: v.Z / n,
+	}
+}
+
+func BenchmarkDivision(b *testing.B) {
+	v := NewVec3(2, 4, 5)
+	for b.Loop() {
+		v = DivideVec3(v, 5)
+	}
+}
+
+func BenchmarkReciprocal(b *testing.B) {
+	v := NewVec3(2, 4, 5)
+	for b.Loop() {
+		v = v.Divide(5)
+	}
+}
+
 type Matrix64 [M4x4]float64
 
 func (m Matrix64) MultiplyByMatrix64(m2 Matrix64) Matrix64 {
