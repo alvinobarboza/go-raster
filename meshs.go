@@ -2,11 +2,22 @@ package main
 
 import "image/color"
 
-type Mesh struct {
-	vertices []Vec3
-	color    color.RGBA
+type Triangle struct {
+	v1, v2, v3 int
+	color      color.RGBA
 }
 
+type MeshData struct {
+	tris  []Triangle
+	verts []Vec3
+}
+
+func NewMesh(verts []Vec3, tris []Triangle) MeshData {
+	return MeshData{
+		verts: verts,
+		tris:  tris,
+	}
+}
 
 type BoundingSphere struct {
 	center, centerWord Vec3
@@ -42,5 +53,24 @@ func (s *BoundingSphere) CalculateBoundaries(verts []Vec3, scale Matrix) {
 	}
 }
 
+type Model struct {
+	transforms     Tranforms
 	boundingSphere BoundingSphere
+	mesh           *MeshData
+}
+
+func NewModel(mesh *MeshData, transforms Tranforms) Model {
+	m := Model{
+		mesh:       mesh,
+		transforms: transforms,
+	}
+
+	m.UpdateTransforms()
+
+	return m
+}
+
+func (m *Model) UpdateTransforms() {
+	m.transforms.UpdateTransforms()
+	m.boundingSphere.CalculateBoundaries(m.mesh.verts, m.transforms.scaleMat)
 }
