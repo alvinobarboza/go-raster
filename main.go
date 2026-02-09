@@ -16,19 +16,10 @@ func main() {
 	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
 	scene := NewScene(&camera)
 
-	cube := NewMesh([]Vec3{
-		NewVec3(1.0, 1.0, 2.0),   // 0 front top right
-		NewVec3(-1.0, 1.0, 2.0),  // 1 front top left
-		NewVec3(-1.0, -1.0, 2.0), // 2 front bottom left
-		NewVec3(1.0, -1.0, 2.0),  // 3 front bottom rigth
-		NewVec3(1.0, 1.0, 3.0),   // 4 back top right
-		NewVec3(-1.0, 1.0, 3.0),  // 5 back top left
-		NewVec3(-1.0, -1.0, 3.0), // 6 back bottom left
-		NewVec3(1.0, -1.0, 3.0),  // 7 back bottom right
-	}, rl.Black)
+	cube := NewCube(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
 
 	scene.AddMesh(
-		cube,
+		&cube,
 	)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
@@ -74,10 +65,12 @@ func main() {
 			leftRight = .1
 		}
 
-		for i := range cube.vertices {
-			cube.vertices[i].X += leftRight
-			cube.vertices[i].Z += backForward
+		if backForward != 0 || leftRight != 0 {
+			cube.transforms.position.X += leftRight
+			cube.transforms.position.Z += backForward
+			cube.UpdateTransforms()
 		}
+
 		scene.Render()
 
 		rl.UpdateTexture(renderTexture, scene.activeCam.canvas)
