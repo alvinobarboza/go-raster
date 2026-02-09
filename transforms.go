@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 const (
 	Pi       = 3.14159265358979323846
@@ -49,7 +52,55 @@ func (v Vec3) Normalized() Vec3 {
 	return v.Divide(v.Length())
 }
 
+func (v Vec3) Cross(v2 Vec3) Vec3 {
+	return Vec3{
+		X: v.Y*v2.Z - v.Z*v2.Y,
+		Y: v.Z*v2.X - v.X*v2.Z,
+		Z: v.X*v2.Y - v.Y*v2.X,
+	}
+}
+
+func (v Vec3) Add(v2 Vec3) Vec3 {
+	return Vec3{
+		X: v.X + v2.X,
+		Y: v.Y + v2.Y,
+		Z: v.Z + v2.Z,
+	}
+}
+
+func (v Vec3) Sub(v2 Vec3) Vec3 {
+	return Vec3{
+		X: v.X - v2.X,
+		Y: v.Y - v2.Y,
+		Z: v.Z - v2.Z,
+	}
+}
+
+func (v Vec3) LerpTo(b Vec3, ratio float32) Vec3 {
+	if ratio > 1 {
+		return b
+	}
+	if ratio < 0 {
+		return v
+	}
+
+	return b.Sub(v).Scale(ratio).Add(v)
+}
+
+func (v Vec3) Print(name string) {
+	fmt.Printf("%s = %+v\n", name, v)
+}
+
 type Matrix [M4x4]float32
+
+func NewZeroMatrix() Matrix {
+	return Matrix{
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+	}
+}
 
 func NewIdentityMatrix() Matrix {
 	return Matrix{
@@ -122,10 +173,9 @@ func (m Matrix) MultiplyByVec3(v Vec3) Vec3 {
 }
 
 func (m Matrix) MultiplyByMatrix(m2 Matrix) Matrix {
-	result := Matrix{}
+	result := NewZeroMatrix()
 	for row := range MatLength {
 		for col := range MatLength {
-			result[row*MatLength+col] = 0.0
 			for k := range MatLength {
 				result[row*MatLength+col] += m[row*MatLength+k] * m2[k*MatLength+col]
 			}
@@ -143,4 +193,14 @@ type Tranforms struct {
 
 func FovScaling(angle float32) float32 {
 	return float32(1 / math.Tan(float64(angle*DegToRad/2)))
+}
+
+func (m Matrix) Print(name string) {
+	fmt.Println(name, ":")
+	for row := range MatLength {
+		for col := range MatLength {
+			fmt.Printf(" %6.2f", m[col*MatLength+row])
+		}
+		fmt.Print("\n")
+	}
 }

@@ -144,3 +144,29 @@ func TestVec3(t *testing.T) {
 		t.Errorf("Expected {1 0 0} got %v", v)
 	}
 }
+
+func TestVec3Lerp(t *testing.T) {
+	a := NewVec3(0, 0, 0)
+	b := NewVec3(10, 0, 0)
+
+	t.Run("Half", func(t *testing.T) {
+		v := a.LerpTo(b, 0.5)
+		if v.X != 5 {
+			t.Errorf("Wanted {5 0 0} got %v\n", v)
+		}
+	})
+
+	t.Run("Above", func(t *testing.T) {
+		v := a.LerpTo(b, 2)
+		if v.X != 10 {
+			t.Errorf("Wanted {10 0 0} got %v\n", v)
+		}
+	})
+
+	t.Run("Below", func(t *testing.T) {
+		v := a.LerpTo(b, -1)
+		if v.X != 0 {
+			t.Errorf("Wanted {0 0 0} got %v\n", v)
+		}
+	})
+}
