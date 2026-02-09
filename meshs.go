@@ -73,4 +73,5 @@ func NewModel(mesh *MeshData, transforms Tranforms) Model {
 func (m *Model) UpdateTransforms() {
 	m.transforms.UpdateTransforms()
 	m.boundingSphere.CalculateBoundaries(m.mesh.verts, m.transforms.scaleMat)
+	m.boundingSphere.centerWord = m.transforms.matrixTransforms.MultiplyByVec3(m.boundingSphere.center)
 }
