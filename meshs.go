@@ -1,21 +1,88 @@
 package main
 
-import "image/color"
+import (
+	"image"
+	"image/color"
+	"image/jpeg"
+	"io"
+	"log"
+	"os"
+)
 
 type Triangle struct {
 	v1, v2, v3 int
 	color      color.RGBA
 }
 
+type Texture struct {
+	width, height int
+	pixels        []color.RGBA
+}
+
 type MeshData struct {
 	tris  []Triangle
 	verts []Vec3
+
+	texture *Texture
 }
 
-func NewMesh(verts []Vec3, tris []Triangle) MeshData {
+func NewMesh(verts []Vec3, tris []Triangle, texture *Texture) MeshData {
 	return MeshData{
-		verts: verts,
-		tris:  tris,
+		verts:   verts,
+		tris:    tris,
+		texture: texture,
+	}
+}
+
+func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
+	img, _, err := image.Decode(file)
+
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+
+	pixels := make([]color.RGBA, 0)
+	for y := range height {
+		for x := range width {
+			r, g, b, a := img.At(x, y).RGBA()
+			pixels = append(pixels, color.RGBA{
+				R: uint8(r),
+				G: uint8(g),
+				B: uint8(b),
+				A: uint8(a),
+			})
+		}
+	}
+
+	return pixels, width, height, nil
+}
+
+func LoadDefaultTexture() *Texture {
+	image.RegisterFormat("jpeg", "\xff\xd8", jpeg.Decode, jpeg.DecodeConfig)
+
+	file, err := os.Open("./assets/default.jpg")
+
+	if err != nil {
+		log.Println("Error: File could not be opened")
+		panic(err)
+	}
+
+	defer file.Close()
+
+	pixels, w, h, err := getPixels(file)
+
+	if err != nil {
+		log.Println("Error: Image could not be decoded")
+		panic(err)
+	}
+
+	return &Texture{
+		width:  w,
+		height: h,
+		pixels: pixels,
 	}
 }
 
