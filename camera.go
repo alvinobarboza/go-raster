@@ -20,7 +20,7 @@ type Camera struct {
 	aspectRatio float32
 	fovScaling  float32
 	zNear       float32
-sensitivity float32
+	sensitivity float32
 
 	updateView bool
 
@@ -35,7 +35,7 @@ func NewCamera(w, h int, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Ca
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
 		zNear:       zNear,
-sensitivity: sensitivity,
+		sensitivity: sensitivity,
 		updateView:  true,
 		transforms: Transforms{
 			scale:            NewVec3(1, 1, 1),

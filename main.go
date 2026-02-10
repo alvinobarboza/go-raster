@@ -13,10 +13,10 @@ const (
 
 func main() {
 
-sensitivity := float32(20)
+	sensitivity := float32(20)
 	fov := float32(90)
 	camera := NewCamera(
-		ScreenWidth/4,
+		ScreenWidth/2,
 		ScreenHeight/2,
 		sensitivity,
 		NearPlane,
@@ -48,14 +48,16 @@ sensitivity := float32(20)
 
 	backForwardCam := float32(0.0)
 	leftRightCam := float32(0.0)
+	upDownCam := float32(0.0)
 
 	rl.SetTargetFPS(60)
-rl.DisableCursor()
+	rl.DisableCursor()
 	cursorEnabled := false
 
 	for !rl.WindowShouldClose() {
+
 		if rl.IsWindowResized() {
-			camera.UpdateCanvasSize(rl.GetScreenWidth()/4, rl.GetScreenHeight()/4)
+			camera.UpdateCanvasSize(rl.GetScreenWidth()/2, rl.GetScreenHeight()/2)
 			rl.ImageResize(img, int32(camera.width), int32(camera.height))
 			rl.UnloadTexture(renderTexture)
 			renderTexture = rl.LoadTextureFromImage(img)
@@ -78,6 +80,7 @@ rl.DisableCursor()
 
 		backForwardCam = 0
 		leftRightCam = 0
+		upDownCam = 0
 
 		if rl.IsKeyDown(rl.KeyUp) {
 			backForward = .1
@@ -128,9 +131,10 @@ rl.DisableCursor()
 			cube.UpdateTransforms()
 		}
 
-		if backForwardCam != 0 || leftRightCam != 0 {
+		if backForwardCam != 0 || leftRightCam != 0 || upDownCam != 0 {
 			camera.MoveBackForwad(backForwardCam)
 			camera.MoveSideways(leftRightCam)
+			camera.MoveVetically(upDownCam)
 		}
 
 		scene.Render()
@@ -150,7 +154,7 @@ rl.DisableCursor()
 		)
 
 		rl.DrawText("raster", 10, 15, 20, rl.Black)
-		rl.DrawFPS(0, 0)
+		rl.DrawFPS(10, 0)
 		rl.EndDrawing()
 	}
 }
