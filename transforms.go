@@ -152,7 +152,7 @@ func (m Matrix) Transposed() Matrix {
 	transposed := Matrix{}
 	for row := range MatLength {
 		for col := range MatLength {
-			transposed[col*MatLength+row] = transposed[row*MatLength+col]
+			transposed[col*MatLength+row] = m[row*MatLength+col]
 		}
 	}
 

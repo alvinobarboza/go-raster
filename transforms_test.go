@@ -170,3 +170,32 @@ func TestVec3Lerp(t *testing.T) {
 		}
 	})
 }
+
+func TestTransposeMat(t *testing.T) {
+	want := Matrix{
+		1, 0, 0, 1,
+		0, 1, 0, 0,
+		1, 0, 1, 0,
+		0, 0, 0, 1,
+	}
+
+	matTest := Matrix{
+		1, 0, 1, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		1, 0, 0, 1,
+	}
+
+	got := matTest.Transposed()
+
+	incorrect := true
+	for i := range M4x4 {
+		if want[i] != got[i] {
+			incorrect = false
+		}
+	}
+
+	if !incorrect {
+		t.Errorf("Want %v, got %v", want, got)
+	}
+}
