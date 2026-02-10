@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"math"
 )
 
@@ -56,10 +55,10 @@ func (s *Scene) DrawLine(a, b ScreenPoint) {
 	}
 }
 
-func (s *Scene) DrawWireframeTriangle(v1, v2, v3 Vec3, cl color.RGBA) {
-	va := s.activeCam.ProjectVertexToNDC(v1, cl)
-	vb := s.activeCam.ProjectVertexToNDC(v2, cl)
-	vc := s.activeCam.ProjectVertexToNDC(v3, cl)
+func (s *Scene) DrawWireframeTriangle(verts []Vec3, tri Triangle) {
+	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1], Black)
+	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], Black)
+	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], Black)
 
 	a := s.activeCam.NDCtoScreen(va)
 	b := s.activeCam.NDCtoScreen(vb)
@@ -70,21 +69,48 @@ func (s *Scene) DrawWireframeTriangle(v1, v2, v3 Vec3, cl color.RGBA) {
 	s.DrawLine(c, a)
 }
 
+func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
+	va := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
+	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], tri.color)
+	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v1], tri.color)
+
+	a := s.activeCam.NDCtoScreen(va)
+	b := s.activeCam.NDCtoScreen(vb)
+	c := s.activeCam.NDCtoScreen(vc)
+
+	maxX := MaxIn(a.X, MaxIn(b.X, c.X))
+	minX := MinIn(a.X, MinIn(b.X, c.X))
+	maxY := MaxIn(a.Y, MaxIn(b.Y, c.Y))
+	minY := MinIn(a.Y, MinIn(b.Y, c.Y))
+
+	for x := minX; x <= maxX; x++ {
+		for y := minY; y <= maxY; y++ {
+			p := ScreenPoint{X: x, Y: y}
+			w1 := EdgeCross(b, c, p)
+			w2 := EdgeCross(c, a, p)
+			w3 := EdgeCross(a, b, p)
+
+			if w1 >= 0 && w2 >= 0 && w3 >= 0 {
+				s.activeCam.PutPixel(ScreenPoint{X: x, Y: y, color: tri.color})
+			}
+		}
+	}
+}
+
 func (s *Scene) Render() {
 	for _, o := range s.objects {
 		matTransform := s.activeCam.transforms.matrixTransforms.MultiplyByMatrix(o.transforms.matrixTransforms)
 		o.boundingSphere.centerWord = matTransform.MultiplyByVec3(o.boundingSphere.center)
 
+		for i, v := range o.mesh.verts {
+			o.mesh.vertsWorld[i] = matTransform.MultiplyByVec3(v)
+		}
+
 		for _, t := range o.mesh.tris {
-			v1 := o.mesh.verts[t.v1]
-			v2 := o.mesh.verts[t.v2]
-			v3 := o.mesh.verts[t.v3]
-
-			v1 = matTransform.MultiplyByVec3(v1)
-			v2 = matTransform.MultiplyByVec3(v2)
-			v3 = matTransform.MultiplyByVec3(v3)
-
-			s.DrawWireframeTriangle(v1, v2, v3, t.color)
+			s.RenderTriangle(o.mesh.vertsWorld, t)
+		}
+		for _, t := range o.mesh.tris {
+			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
 	}
 }

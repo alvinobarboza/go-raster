@@ -23,8 +23,10 @@ type Texture struct {
 }
 
 type MeshData struct {
-	tris    []Triangle
-	verts   []Vec3
+	tris       []Triangle
+	verts      []Vec3
+	vertsWorld []Vec3
+
 	normals []Vec3
 	uv      []Vec3
 
@@ -32,10 +34,12 @@ type MeshData struct {
 }
 
 func NewMesh(verts []Vec3, tris []Triangle, texture *Texture) MeshData {
+	vertsWord := make([]Vec3, len(verts))
 	return MeshData{
-		verts:   verts,
-		tris:    tris,
-		texture: texture,
+		verts:      verts,
+		vertsWorld: vertsWord,
+		tris:       tris,
+		texture:    texture,
 	}
 }
 

@@ -61,10 +61,7 @@ func (c *Camera) UpdateCanvasSize(w, h int) {
 
 func (c *Camera) ClearCanvas() {
 	for i := range len(c.canvas) {
-		c.canvas[i].R = 240
-		c.canvas[i].G = 240
-		c.canvas[i].B = 240
-		c.canvas[i].A = 255
+		c.canvas[i] = Gray
 	}
 }
 

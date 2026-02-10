@@ -229,3 +229,41 @@ func (m Matrix) Print(name string) {
 		fmt.Print("\n")
 	}
 }
+
+func Minf(a, b float32) float32 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func Maxf(a, b float32) float32 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func MinIn(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func MaxIn(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func EdgeCross(a, b, p ScreenPoint) int {
+	abX := b.X - a.X
+	abY := b.Y - a.Y
+
+	apX := p.X - a.X
+	apY := p.Y - a.Y
+
+	return (abX * apY) - (abY * apX)
+}
