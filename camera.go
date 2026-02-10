@@ -20,6 +20,9 @@ type Camera struct {
 	aspectRatio float32
 	fovScaling  float32
 	zNear       float32
+sensitivity float32
+
+	updateView bool
 
 	width, height         int
 	halfWidth, halfHeight float32
@@ -27,11 +30,13 @@ type Camera struct {
 	transforms Transforms
 }
 
-func NewCamera(w, h int, zNear, fovAngle float32, pos, rot Vec3) Camera {
+func NewCamera(w, h int, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Camera {
 	c := Camera{
-		fovAngle:   fovAngle,
-		fovScaling: FovScaling(fovAngle),
-		zNear:      zNear,
+		fovAngle:    fovAngle,
+		fovScaling:  FovScaling(fovAngle),
+		zNear:       zNear,
+sensitivity: sensitivity,
+		updateView:  true,
 		transforms: Transforms{
 			scale:            NewVec3(1, 1, 1),
 			rotation:         rot,
@@ -119,5 +124,37 @@ func (c *Camera) MoveSideways(unit float32) {
 
 	c.transforms.position = c.transforms.position.Add(normalDirection.Scale(unit))
 
+	c.transforms.UpdateTransforms(true, true)
+}
+
+func (c *Camera) UpdateRotation(x float32, y float32) {
+	if !c.updateView {
+		return
+	}
+
+	if x == 0 && y == 0 {
+		return
+	}
+
+	c.transforms.rotation.X -= y * c.sensitivity
+	c.transforms.rotation.Y -= x * c.sensitivity
+
+	if c.transforms.rotation.X > 89 {
+		c.transforms.rotation.X = 89
+	}
+
+	if c.transforms.rotation.X < -89 {
+		c.transforms.rotation.X = -89
+	}
+
+	c.transforms.UpdateTransforms(true, true)
+}
+
+func (c *Camera) ToggleViewLock() {
+	c.updateView = !c.updateView
+}
+
+func (c *Camera) MoveVetically(unit float32) {
+	c.transforms.position.Y += unit
 	c.transforms.UpdateTransforms(true, true)
 }

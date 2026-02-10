@@ -13,11 +13,14 @@ const (
 
 func main() {
 
+sensitivity := float32(20)
+	fov := float32(90)
 	camera := NewCamera(
 		ScreenWidth/4,
-		ScreenHeight/4,
+		ScreenHeight/2,
+		sensitivity,
 		NearPlane,
-		90,
+		fov,
 		NewVec3(0, 0, -5),
 		NewVec3(0, 0, 0),
 	)
@@ -47,6 +50,9 @@ func main() {
 	leftRightCam := float32(0.0)
 
 	rl.SetTargetFPS(60)
+rl.DisableCursor()
+	cursorEnabled := false
+
 	for !rl.WindowShouldClose() {
 		if rl.IsWindowResized() {
 			camera.UpdateCanvasSize(rl.GetScreenWidth()/4, rl.GetScreenHeight()/4)
@@ -56,6 +62,16 @@ func main() {
 		}
 
 		camera.ClearCanvas()
+
+		if rl.IsKeyPressed(rl.KeyTab) {
+			camera.ToggleViewLock()
+			if cursorEnabled {
+				rl.DisableCursor()
+			} else {
+				rl.EnableCursor()
+			}
+			cursorEnabled = !cursorEnabled
+		}
 
 		backForward = 0
 		leftRight = 0
@@ -94,6 +110,17 @@ func main() {
 		if rl.IsKeyDown(rl.KeyD) {
 			leftRightCam = -.1
 		}
+
+		if rl.IsKeyDown(rl.KeySpace) {
+			upDownCam = .1
+		}
+
+		if rl.IsKeyDown(rl.KeyLeftControl) {
+			upDownCam = -.1
+		}
+
+		mouseDelta := rl.GetMouseDelta()
+		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime(), mouseDelta.Y*rl.GetFrameTime())
 
 		if backForward != 0 || leftRight != 0 {
 			cube.transforms.position.X += leftRight
