@@ -2,13 +2,36 @@ package main
 
 import "image/color"
 
+func NewColor(r, g, b, a uint8) color.RGBA {
+	return color.RGBA{R: r, G: g, B: b, A: a}
+}
+
 var (
-	Red    = color.RGBA{R: 230, G: 41, B: 55, A: 255}
-	Green  = color.RGBA{R: 0, G: 228, B: 48, A: 255}
-	Blue   = color.RGBA{R: 0, G: 121, B: 241, A: 255}
-	Yellow = color.RGBA{R: 253, G: 249, B: 0, A: 255}
-	Purple = color.RGBA{R: 200, G: 122, B: 255, A: 255}
-	Black  = color.RGBA{R: 50, G: 50, B: 50, A: 255}
+	LightGray  = NewColor(200, 200, 200, 255)
+	Gray       = NewColor(130, 130, 130, 255)
+	DarkGray   = NewColor(80, 80, 80, 255)
+	Yellow     = NewColor(253, 249, 0, 255)
+	Gold       = NewColor(255, 203, 0, 255)
+	Orange     = NewColor(255, 161, 0, 255)
+	Pink       = NewColor(255, 109, 194, 255)
+	Red        = NewColor(230, 41, 55, 255)
+	Maroon     = NewColor(190, 33, 55, 255)
+	Green      = NewColor(0, 228, 48, 255)
+	Lime       = NewColor(0, 158, 47, 255)
+	DarkGreen  = NewColor(0, 117, 44, 255)
+	SkyBlue    = NewColor(102, 191, 255, 255)
+	Blue       = NewColor(0, 121, 241, 255)
+	DarkBlue   = NewColor(0, 82, 172, 255)
+	Purple     = NewColor(200, 122, 255, 255)
+	Violet     = NewColor(135, 60, 190, 255)
+	DarkPurple = NewColor(112, 31, 126, 255)
+	Beige      = NewColor(211, 176, 131, 255)
+	Brown      = NewColor(127, 106, 79, 255)
+	DarkBrown  = NewColor(76, 63, 47, 255)
+	White      = NewColor(255, 255, 255, 255)
+	Black      = NewColor(0, 0, 0, 255)
+	Blank      = NewColor(0, 0, 0, 0)
+	Magenta    = NewColor(255, 0, 255, 255)
 )
 
 // CUBE === begging
