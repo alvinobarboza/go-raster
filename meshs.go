@@ -132,12 +132,12 @@ func (s *BoundingSphere) CalculateBoundaries(verts []Vec3, scale Matrix) {
 }
 
 type Model struct {
-	transforms     Tranforms
+	transforms     Transforms
 	boundingSphere BoundingSphere
 	mesh           *MeshData
 }
 
-func NewModel(mesh *MeshData, transforms Tranforms) Model {
+func NewModel(mesh *MeshData, transforms Transforms) Model {
 	m := Model{
 		mesh:       mesh,
 		transforms: transforms,
@@ -149,7 +149,7 @@ func NewModel(mesh *MeshData, transforms Tranforms) Model {
 }
 
 func (m *Model) UpdateTransforms() {
-	m.transforms.UpdateTransforms()
+	m.transforms.UpdateTransforms(false, false)
 	m.boundingSphere.CalculateBoundaries(m.mesh.verts, m.transforms.scaleMat)
 	m.boundingSphere.centerWord = m.transforms.matrixTransforms.MultiplyByVec3(m.boundingSphere.center)
 }

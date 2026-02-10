@@ -13,11 +13,18 @@ const (
 
 func main() {
 
-	camera := NewCamera(ScreenWidth/4, ScreenHeight/4, NearPlane, 90)
-	scene := NewScene(&camera)
+	camera := NewCamera(
+		ScreenWidth/4,
+		ScreenHeight/4,
+		NearPlane,
+		90,
+		NewVec3(0, 0, -5),
+		NewVec3(0, 0, 0),
+	)
 
 	cube := NewCube(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
 
+	scene := NewScene(&camera)
 	scene.AddMesh(
 		&cube,
 	)
@@ -35,6 +42,10 @@ func main() {
 
 	backForward := float32(0.0)
 	leftRight := float32(0.0)
+
+	backForwardCam := float32(0.0)
+	leftRightCam := float32(0.0)
+
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		if rl.IsWindowResized() {
@@ -48,6 +59,9 @@ func main() {
 
 		backForward = 0
 		leftRight = 0
+
+		backForwardCam = 0
+		leftRightCam = 0
 
 		if rl.IsKeyDown(rl.KeyUp) {
 			backForward = .1
@@ -65,10 +79,31 @@ func main() {
 			leftRight = .1
 		}
 
+		if rl.IsKeyDown(rl.KeyW) {
+			backForwardCam = .1
+		}
+
+		if rl.IsKeyDown(rl.KeyS) {
+			backForwardCam = -.1
+		}
+
+		if rl.IsKeyDown(rl.KeyA) {
+			leftRightCam = .1
+		}
+
+		if rl.IsKeyDown(rl.KeyD) {
+			leftRightCam = -.1
+		}
+
 		if backForward != 0 || leftRight != 0 {
 			cube.transforms.position.X += leftRight
 			cube.transforms.position.Z += backForward
 			cube.UpdateTransforms()
+		}
+
+		if backForwardCam != 0 || leftRightCam != 0 {
+			camera.MoveBackForwad(backForwardCam)
+			camera.MoveSideways(leftRightCam)
 		}
 
 		scene.Render()

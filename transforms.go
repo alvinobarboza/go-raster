@@ -185,8 +185,11 @@ func (m Matrix) MultiplyByMatrix(m2 Matrix) Matrix {
 	return result
 }
 
-type Tranforms struct {
-	scale, rotation, position Vec3
+type Transforms struct {
+	scale            Vec3
+	rotation         Vec3
+	position         Vec3
+	forwardDirection Vec3
 
 	scaleMat         Matrix
 	rotationMat      Matrix
@@ -194,10 +197,20 @@ type Tranforms struct {
 	matrixTransforms Matrix
 }
 
-func (t *Tranforms) UpdateTransforms() {
+func (t *Transforms) UpdateTransforms(transposeRot bool, invertPosition bool) {
 	t.rotationMat = NewRotationMatrix(t.rotation)
 	t.scaleMat = NewScaleMatrix(t.scale)
-	t.translationMat = NewTranslationMatrix(t.position)
+	pos := t.position
+
+	if invertPosition {
+		pos = t.position.Scale(-1)
+	}
+
+	t.translationMat = NewTranslationMatrix(pos)
+
+	if transposeRot {
+		t.rotationMat = t.rotationMat.Transposed()
+	}
 
 	t.matrixTransforms = t.rotationMat.MultiplyByMatrix(t.scaleMat)
 	t.matrixTransforms = t.matrixTransforms.MultiplyByMatrix(t.translationMat)

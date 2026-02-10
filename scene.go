@@ -72,14 +72,17 @@ func (s *Scene) DrawWireframeTriangle(v1, v2, v3 Vec3, cl color.RGBA) {
 
 func (s *Scene) Render() {
 	for _, o := range s.objects {
+		matTransform := s.activeCam.transforms.matrixTransforms.MultiplyByMatrix(o.transforms.matrixTransforms)
+		o.boundingSphere.centerWord = matTransform.MultiplyByVec3(o.boundingSphere.center)
+
 		for _, t := range o.mesh.tris {
 			v1 := o.mesh.verts[t.v1]
 			v2 := o.mesh.verts[t.v2]
 			v3 := o.mesh.verts[t.v3]
 
-			v1 = o.transforms.matrixTransforms.MultiplyByVec3(v1)
-			v2 = o.transforms.matrixTransforms.MultiplyByVec3(v2)
-			v3 = o.transforms.matrixTransforms.MultiplyByVec3(v3)
+			v1 = matTransform.MultiplyByVec3(v1)
+			v2 = matTransform.MultiplyByVec3(v2)
+			v3 = matTransform.MultiplyByVec3(v3)
 
 			s.DrawWireframeTriangle(v1, v2, v3, t.color)
 		}

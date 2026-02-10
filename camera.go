@@ -23,14 +23,24 @@ type Camera struct {
 
 	width, height         int
 	halfWidth, halfHeight float32
+
+	transforms Transforms
 }
 
-func NewCamera(w, h int, zNear, fovAngle float32) Camera {
+func NewCamera(w, h int, zNear, fovAngle float32, pos, rot Vec3) Camera {
 	c := Camera{
 		fovAngle:   fovAngle,
 		fovScaling: FovScaling(fovAngle),
+		zNear:      zNear,
+		transforms: Transforms{
+			scale:            NewVec3(1, 1, 1),
+			rotation:         rot,
+			position:         pos,
+			forwardDirection: NewVec3(0, 0, 1),
+		},
 	}
 
+	c.transforms.UpdateTransforms(true, true)
 	c.UpdateCanvasSize(w, h)
 	return c
 }
@@ -44,7 +54,7 @@ func (c *Camera) UpdateCanvasSize(w, h int) {
 	c.canvas = make([]color.RGBA, w*h)
 }
 
-func (c Camera) ClearCanvas() {
+func (c *Camera) ClearCanvas() {
 	for i := range len(c.canvas) {
 		c.canvas[i].R = 240
 		c.canvas[i].G = 240
@@ -53,7 +63,7 @@ func (c Camera) ClearCanvas() {
 	}
 }
 
-func (c Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
+func (c *Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
 	zXInverse := 1 / (v.Z * c.aspectRatio)
 	zYInverse := 1 / v.Z
 	return NDCPoint{
@@ -63,7 +73,7 @@ func (c Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
 	}
 }
 
-func (c Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
+func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 	x := int((p.X + 1) * c.halfWidth)
 	y := int((1 - p.Y) * c.halfHeight)
 
@@ -74,9 +84,40 @@ func (c Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 	}
 }
 
-func (c Camera) PutPixel(p ScreenPoint) {
+func (c *Camera) PutPixel(p ScreenPoint) {
 	if p.X < 0 || p.X >= c.width || p.Y < 0 || p.Y >= c.height {
 		return
 	}
 	c.canvas[p.Y*c.width+p.X] = p.color
+}
+
+func (c *Camera) MoveBackForwad(unit float32) {
+	if unit == 0 {
+		return
+	}
+
+	rotMat := NewRotationMatrix(c.transforms.rotation)
+
+	direction := rotMat.MultiplyByVec3(c.transforms.forwardDirection)
+	normalDirection := direction.Normalized()
+
+	c.transforms.position = c.transforms.position.Add(normalDirection.Scale(unit))
+
+	c.transforms.UpdateTransforms(true, true)
+}
+
+func (c *Camera) MoveSideways(unit float32) {
+	if unit == 0 {
+		return
+	}
+
+	rotMat := NewRotationMatrix(c.transforms.rotation)
+
+	direction := rotMat.MultiplyByVec3(c.transforms.forwardDirection)
+	sideDirection := direction.Cross(NewVec3(0, 1, 0))
+	normalDirection := sideDirection.Normalized()
+
+	c.transforms.position = c.transforms.position.Add(normalDirection.Scale(unit))
+
+	c.transforms.UpdateTransforms(true, true)
 }
