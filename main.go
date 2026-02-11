@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -14,14 +16,14 @@ const (
 func main() {
 	factor := 1
 	sensitivity := float32(20)
-	fov := float32(90)
+	fov := float32(53)
 	camera := NewCamera(
 		ScreenWidth/factor,
 		ScreenHeight/factor,
 		sensitivity,
 		NearPlane,
 		fov,
-		NewVec3(0, 0, -5),
+		NewVec3(0, 0.03, 0.8),
 		NewVec3(0, 0, 0),
 	)
 
@@ -35,7 +37,7 @@ func main() {
 		panic(err)
 	}
 	cube := NewModel(
-		&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
+		&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(16/8, 1, 9/8), NewVec3(0, 0, 0)))
 
 	utahTeapot := NewModel(
 		&utahTeapotMesh, NewTransforms(NewVec3(5, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
