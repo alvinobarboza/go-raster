@@ -12,12 +12,12 @@ const (
 )
 
 func main() {
-
+	factor := 1
 	sensitivity := float32(20)
 	fov := float32(90)
 	camera := NewCamera(
-		ScreenWidth/4,
-		ScreenHeight/4,
+		ScreenWidth/factor,
+		ScreenHeight/factor,
 		sensitivity,
 		NearPlane,
 		fov,
@@ -69,7 +69,7 @@ func main() {
 	for !rl.WindowShouldClose() {
 
 		if rl.IsWindowResized() {
-			camera.UpdateCanvasSize(rl.GetScreenWidth()/4, rl.GetScreenHeight()/4)
+			camera.UpdateCanvasSize(rl.GetScreenWidth()/factor, rl.GetScreenHeight()/factor)
 			rl.ImageResize(img, int32(camera.width), int32(camera.height))
 			rl.UnloadTexture(renderTexture)
 			renderTexture = rl.LoadTextureFromImage(img)
