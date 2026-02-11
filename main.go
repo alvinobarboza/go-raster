@@ -25,7 +25,11 @@ func main() {
 		NewVec3(0, 0, 0),
 	)
 
-	cube := NewCube(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
+	cubeMesh, err := LoadMeshFromFile("./assets/cube.obj", "./assets/default.jpg")
+	if err != nil {
+		panic(err)
+	}
+	cube := NewModel(&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
 
 	scene := NewScene(&camera)
 	scene.AddMesh(

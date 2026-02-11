@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"image/color"
 	"io"
 	"log"
 	"os"
@@ -113,6 +114,33 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 				t := LoadTriangle(line)
 				tris = append(tris, t...)
 			}
+		}
+	}
+
+	texture, err := LoadTexture(texturePath)
+	if err != nil {
+		log.Println(err)
+		return MeshData{}, nil
+	}
+
+	// Calculate avarege color for whole object, very hacky to be honest
+	var r, g, b int
+	for _, p := range texture.pixels {
+		r += int(p.R)
+		g += int(p.G)
+		b += int(p.B)
+	}
+
+	r /= len(texture.pixels)
+	g /= len(texture.pixels)
+	b /= len(texture.pixels)
+
+	for i := range len(tris) {
+		tris[i].color = color.RGBA{
+			A: 255,
+			R: uint8(r),
+			G: uint8(g),
+			B: uint8(b),
 		}
 	}
 
