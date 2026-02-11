@@ -29,12 +29,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	cube := NewModel(&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
+
+	utahTeapotMesh, err := LoadMeshFromFile("./assets/utah-assets/utah_teapot.obj", "./assets/default.jpg")
+	if err != nil {
+		panic(err)
+	}
+	cube := NewModel(
+		&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
+
+	utahTeapot := NewModel(
+		&utahTeapotMesh, NewTransforms(NewVec3(5, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
 
 	scene := NewScene(&camera)
-	scene.AddMesh(
-		&cube,
-	)
+	scene.AddMesh(&cube)
+	scene.AddMesh(&utahTeapot)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
