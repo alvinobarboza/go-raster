@@ -69,38 +69,6 @@ func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
 	return pixels, width, height, nil
 }
 
-func LoadTexture(path string) (*Texture, error) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		log.Println("Error: File could not be opened")
-		return nil, err
-	}
-
-	defer file.Close()
-
-	pixels, w, h, err := getPixels(file)
-
-	if err != nil {
-		log.Println("Error: Image could not be decoded")
-		return nil, err
-	}
-
-	return &Texture{
-		width:  w,
-		height: h,
-		pixels: pixels,
-	}, nil
-}
-
-func LoadDefaultTexture() *Texture {
-	img, err := LoadTexture("./assets/default.jpg")
-	if err != nil {
-		panic(err)
-	}
-	return img
-}
-
 type BoundingSphere struct {
 	center, centerWord Vec3
 	radius             float32

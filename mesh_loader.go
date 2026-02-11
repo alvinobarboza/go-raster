@@ -116,10 +116,36 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 		}
 	}
 
-	return MeshData{
-		verts:   verts,
-		normals: normals,
-		uv:      uvs,
-		tris:    tris,
+
+func LoadTexture(path string) (*Texture, error) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Println("Error: File could not be opened")
+		return nil, err
+	}
+
+	defer file.Close()
+
+	pixels, w, h, err := getPixels(file)
+
+	if err != nil {
+		log.Println("Error: Image could not be decoded")
+		return nil, err
+	}
+
+	return &Texture{
+		width:  w,
+		height: h,
+		pixels: pixels,
 	}, nil
+}
+
+// Will panic if default not present
+func LoadDefaultTexture() *Texture {
+	img, err := LoadTexture("./assets/default.jpg")
+	if err != nil {
+		panic(err)
+	}
+	return img
 }
