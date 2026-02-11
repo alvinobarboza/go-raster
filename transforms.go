@@ -197,6 +197,14 @@ type Transforms struct {
 	matrixTransforms Matrix
 }
 
+func NewTransforms(pos, scale, rot Vec3) Transforms {
+	return Transforms{
+		position: pos,
+		scale:    scale,
+		rotation: rot,
+	}
+}
+
 func (t *Transforms) UpdateTransforms(transposeRot bool, invertPosition bool) {
 	t.rotationMat = NewRotationMatrix(t.rotation)
 	t.scaleMat = NewScaleMatrix(t.scale)

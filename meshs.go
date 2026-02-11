@@ -6,8 +6,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
-	"log"
-	"os"
 )
 
 type Triangle struct {
@@ -33,10 +31,12 @@ type MeshData struct {
 	texture *Texture
 }
 
-func NewMesh(verts []Vec3, tris []Triangle, texture *Texture) MeshData {
+func NewMesh(verts, normals, uvs []Vec3, tris []Triangle, texture *Texture) MeshData {
 	vertsWord := make([]Vec3, len(verts))
 	return MeshData{
 		verts:      verts,
+		normals:    normals,
+		uv:         uvs,
 		vertsWorld: vertsWord,
 		tris:       tris,
 		texture:    texture,

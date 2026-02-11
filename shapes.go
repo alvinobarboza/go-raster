@@ -64,7 +64,7 @@ var trisCube = []Triangle{
 // CUBE === end
 
 func NewCube(pos, scale, rotation Vec3) Model {
-	m := NewMesh(vertsCube, trisCube, nil)
+	m := NewMesh(vertsCube, nil, nil, trisCube, nil)
 	return NewModel(&m, Transforms{
 		position: pos,
 		scale:    scale,

@@ -116,6 +116,8 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 		}
 	}
 
+	return NewMesh(verts, normals, uvs, tris, texture), nil
+}
 
 func LoadTexture(path string) (*Texture, error) {
 	file, err := os.Open(path)
