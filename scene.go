@@ -70,9 +70,9 @@ func (s *Scene) DrawWireframeTriangle(verts []Vec3, tri Triangle) {
 }
 
 func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
-	va := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
+	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1], tri.color)
 	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], tri.color)
-	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v1], tri.color)
+	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
 
 	a := s.activeCam.NDCtoScreen(va)
 	b := s.activeCam.NDCtoScreen(vb)
@@ -97,20 +97,67 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	}
 }
 
+// temporary as this must be using frustum calculation
+// signed distance from view distance to point
+func (s *Scene) signedDistanceToPoint(planeNormal, point Vec3) float32 {
+	d := planeNormal.MultiplyByVec3(point)
+	d += s.activeCam.zNear
+	return d
+}
+
+func backFaceCulling(tri *Triangle, verts, normals []Vec3) bool {
+	angleA := normals[tri.n1].MultiplyByVec3(verts[tri.v1].Scale(-1))
+	angleB := normals[tri.n2].MultiplyByVec3(verts[tri.v2].Scale(-1))
+	angleC := normals[tri.n3].MultiplyByVec3(verts[tri.v3].Scale(-1))
+	return angleA >= 0 || angleB >= 0 || angleC >= 0
+}
+
 func (s *Scene) Render() {
 	for _, o := range s.objects {
 		matTransform := s.activeCam.transforms.matrixTransforms.MultiplyByMatrix(o.transforms.matrixTransforms)
+		matRoation := s.activeCam.transforms.rotationMat.MultiplyByMatrix(o.transforms.rotationMat)
+
 		o.boundingSphere.centerWord = matTransform.MultiplyByVec3(o.boundingSphere.center)
+		planeNormal := s.activeCam.transforms.forwardDirection
 
 		for i, v := range o.mesh.verts {
 			o.mesh.vertsWorld[i] = matTransform.MultiplyByVec3(v)
 		}
 
+		for i, n := range o.mesh.normals {
+			o.mesh.normalsWorld[i] = matRoation.MultiplyByVec3(n)
+		}
+
 		for _, t := range o.mesh.tris {
+			if !backFaceCulling(&t, o.mesh.vertsWorld, o.mesh.normalsWorld) {
+				continue
+			}
+
+			d1 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v1])
+			d2 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v2])
+			d3 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v3])
+
+			if d1 <= 0.1 || d2 <= 0.1 || d3 <= 0.1 {
+				continue
+			}
+
 			s.RenderTriangle(o.mesh.vertsWorld, t)
 		}
+
 		for _, t := range o.mesh.tris {
+			if !backFaceCulling(&t, o.mesh.vertsWorld, o.mesh.normalsWorld) {
+				continue
+			}
+			d1 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v1])
+			d2 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v2])
+			d3 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v3])
+
+			if d1 <= 0.1 || d2 <= 0.1 || d3 <= 0.1 {
+				continue
+			}
+
 			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
+		break
 	}
 }

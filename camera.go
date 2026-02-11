@@ -34,7 +34,7 @@ func NewCamera(w, h int, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Ca
 	c := Camera{
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
-		zNear:       zNear,
+		zNear:       -zNear,
 		sensitivity: sensitivity,
 		updateView:  true,
 		transforms: Transforms{
