@@ -165,8 +165,24 @@ func main() {
 			rl.White,
 		)
 
-		rl.DrawText("raster", 10, 15, 20, rl.Black)
-		rl.DrawFPS(10, 0)
+		rl.DrawText("RASTER", int32(rl.GetScreenWidth()-140), int32(rl.GetScreenHeight()-20), 20, rl.Gray)
+
+		rl.DrawRectangle(2, 2, 305, 230, rl.Fade(rl.DarkGray, 0.6))
+		rl.DrawRectangleLines(2, 2, 305, 230, rl.Gray)
+
+		rl.DrawFPS(10, 10)
+		rl.DrawText(
+			fmt.Sprintf(
+				"Cam: \nX:%01f \nY:%01f \nZ:%01f",
+				camera.transforms.position.X,
+				camera.transforms.position.Y,
+				camera.transforms.position.Z),
+			10, 50, 20, rl.White)
+		rl.DrawText("Move: A/W/S/D",
+			10, 140, 20, rl.White)
+		rl.DrawText("Mouse view moviment: \nTab to Lock/Unlock",
+			10, 162, 20, rl.White)
+
 		rl.EndDrawing()
 	}
 }
