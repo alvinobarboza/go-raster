@@ -2,18 +2,27 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 const (
-	ScreenWidth  = 1024
-	ScreenHeight = 768
+	ScreenWidth  = 2200
+	ScreenHeight = 1200
 
 	NearPlane = 0.2
 )
 
 func main() {
+
+	// Profiling
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	factor := 1
 	sensitivity := float32(20)
 	fov := float32(53)
