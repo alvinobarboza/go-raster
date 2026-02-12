@@ -35,7 +35,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint) {
 		abY := float32(b.Y-a.Y) / float32(b.X-a.X)
 		ys := float32(a.Y)
 		for x := a.X; x <= b.X; x++ {
-			s.activeCam.PutPixel(ScreenPoint{X: x, Y: int(ys), color: a.color})
+			s.activeCam.PutPixel(ScreenPoint{X: x, Y: ys, color: a.color})
 			ys += abY
 		}
 		return
@@ -51,7 +51,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint) {
 	xs := float32(a.X)
 
 	for y := a.Y; y <= b.Y; y++ {
-		s.activeCam.PutPixel(ScreenPoint{X: int(xs), Y: y, color: a.color})
+		s.activeCam.PutPixel(ScreenPoint{X: xs, Y: y, color: a.color})
 		xs += abX
 	}
 }
@@ -79,10 +79,10 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	v1 := s.activeCam.NDCtoScreen(vb)
 	v2 := s.activeCam.NDCtoScreen(vc)
 
-	minX := MinIn(v0.X, MinIn(v1.X, v2.X))
-	minY := MinIn(v0.Y, MinIn(v1.Y, v2.Y))
-	maxX := MaxIn(v0.X, MaxIn(v1.X, v2.X))
-	maxY := MaxIn(v0.Y, MaxIn(v1.Y, v2.Y))
+	minX := float32(math.Floor(float64(Minf(v0.X, Minf(v1.X, v2.X)))))
+	minY := float32(math.Floor(float64(Minf(v0.Y, Minf(v1.Y, v2.Y)))))
+	maxX := float32(math.Ceil(float64(Maxf(v0.X, Maxf(v1.X, v2.X)))))
+	maxY := float32(math.Ceil(float64(Maxf(v0.Y, Maxf(v1.Y, v2.Y)))))
 
 	deltaW0Col := v1.Y - v2.Y
 	deltaW1Col := v2.Y - v0.Y
@@ -92,9 +92,9 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	deltaW1Row := v0.X - v2.X
 	deltaW2Row := v1.X - v0.X
 
-	bias0 := 0
-	bias1 := 0
-	bias2 := 0
+	bias0 := float32(0)
+	bias1 := float32(0)
+	bias2 := float32(0)
 
 	if v1.IsTopOrLeft(v2) {
 		bias0 = -1
@@ -110,7 +110,9 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 
 	area := float32(EdgeCross(v0, v1, v2))
 
-	p := ScreenPoint{X: minX, Y: minY}
+	// pixel's center
+	p := ScreenPoint{X: minX + 0.5, Y: minY + 0.5}
+
 	w0Row := EdgeCross(v1, v2, p) + bias0
 	w1Row := EdgeCross(v2, v0, p) + bias1
 	w2Row := EdgeCross(v0, v1, p) + bias2
@@ -208,6 +210,6 @@ func (s *Scene) Render() {
 
 			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
-		break
+		// break
 	}
 }

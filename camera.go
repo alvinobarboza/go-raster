@@ -10,7 +10,7 @@ type NDCPoint struct {
 }
 
 type ScreenPoint struct {
-	X, Y  int
+	X, Y  float32
 	color color.RGBA
 }
 

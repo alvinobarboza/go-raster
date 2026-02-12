@@ -266,7 +266,7 @@ func MaxIn(a, b int) int {
 	return b
 }
 
-func EdgeCross(a, b, p ScreenPoint) int {
+func EdgeCross(a, b, p ScreenPoint) float32 {
 	abX := b.X - a.X
 	abY := b.Y - a.Y
 
