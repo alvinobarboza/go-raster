@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"math"
 )
 
@@ -74,42 +75,75 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], tri.color)
 	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
 
-	a := s.activeCam.NDCtoScreen(va)
-	b := s.activeCam.NDCtoScreen(vb)
-	c := s.activeCam.NDCtoScreen(vc)
+	v0 := s.activeCam.NDCtoScreen(va)
+	v1 := s.activeCam.NDCtoScreen(vb)
+	v2 := s.activeCam.NDCtoScreen(vc)
 
-	maxX := MaxIn(a.X, MaxIn(b.X, c.X))
-	minX := MinIn(a.X, MinIn(b.X, c.X))
-	maxY := MaxIn(a.Y, MaxIn(b.Y, c.Y))
-	minY := MinIn(a.Y, MinIn(b.Y, c.Y))
+	minX := MinIn(v0.X, MinIn(v1.X, v2.X))
+	minY := MinIn(v0.Y, MinIn(v1.Y, v2.Y))
+	maxX := MaxIn(v0.X, MaxIn(v1.X, v2.X))
+	maxY := MaxIn(v0.Y, MaxIn(v1.Y, v2.Y))
 
+	deltaW0Col := v1.Y - v2.Y
+	deltaW1Col := v2.Y - v0.Y
+	deltaW2Col := v0.Y - v1.Y
+
+	deltaW0Row := v2.X - v1.X
+	deltaW1Row := v0.X - v2.X
+	deltaW2Row := v1.X - v0.X
+
+	bias0 := 0
 	bias1 := 0
 	bias2 := 0
-	bias3 := 0
 
-	if b.IsTopOrLeft(c) {
+	if v1.IsTopOrLeft(v2) {
+		bias0 = -1
+	}
+
+	if v2.IsTopOrLeft(v0) {
 		bias1 = -1
 	}
 
-	if c.IsTopOrLeft(a) {
+	if v0.IsTopOrLeft(v1) {
 		bias2 = -1
 	}
 
-	if a.IsTopOrLeft(b) {
-		bias3 = -1
-	}
+	area := float32(EdgeCross(v0, v1, v2))
 
-	for x := minX; x <= maxX; x++ {
-		for y := minY; y <= maxY; y++ {
-			p := ScreenPoint{X: x, Y: y}
-			w1 := EdgeCross(b, c, p) + bias1
-			w2 := EdgeCross(c, a, p) + bias2
-			w3 := EdgeCross(a, b, p) + bias3
+	p := ScreenPoint{X: minX, Y: minY}
+	w0Row := EdgeCross(v1, v2, p) + bias0
+	w1Row := EdgeCross(v2, v0, p) + bias1
+	w2Row := EdgeCross(v0, v1, p) + bias2
 
-			if w1 >= 0 && w2 >= 0 && w3 >= 0 {
-				s.activeCam.PutPixel(ScreenPoint{X: x, Y: y, color: tri.color})
+	for y := minY; y <= maxY; y++ {
+		w0 := w0Row
+		w1 := w1Row
+		w2 := w2Row
+		for x := minX; x <= maxX; x++ {
+			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
+				// TODO: use to interpolate depth and uv coordinates
+				alpha := float32(w0) / area
+				beta := float32(w1) / area
+				gama := float32(w2) / area
+
+				r := 255 * alpha
+				g := 255 * beta
+				b := 255 * gama
+
+				s.activeCam.PutPixel(ScreenPoint{X: x, Y: y, color: color.RGBA{
+					A: 255,
+					R: uint8(r),
+					G: uint8(g),
+					B: uint8(b),
+				}})
 			}
+			w0 += deltaW0Col
+			w1 += deltaW1Col
+			w2 += deltaW2Col
 		}
+		w0Row += deltaW0Row
+		w1Row += deltaW1Row
+		w2Row += deltaW2Row
 	}
 }
 
