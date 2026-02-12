@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	ScreenWidth  = 2200
-	ScreenHeight = 1200
+	ScreenWidth  = 1100
+	ScreenHeight = 600
 
 	NearPlane = 0.2
 )
@@ -23,12 +23,12 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	factor := 4
-	sensitivity := float32(20)
+	factor := 1
+	sensitivity := float32(10)
 	fov := float32(53)
 	camera := NewCamera(
-		ScreenWidth/factor,
-		ScreenHeight/factor,
+		uint(ScreenWidth/factor),
+		uint(ScreenHeight/factor),
 		sensitivity,
 		NearPlane,
 		fov,
@@ -60,7 +60,7 @@ func main() {
 	rl.InitWindow(ScreenWidth, ScreenHeight, "go-raster")
 	defer rl.CloseWindow()
 
-	img := rl.GenImageColor(camera.width, camera.height, rl.RayWhite)
+	img := rl.GenImageColor(int(camera.width), int(camera.height), rl.RayWhite)
 	defer rl.UnloadImage(img)
 
 	renderTexture := rl.LoadTextureFromImage(img)
@@ -80,7 +80,7 @@ func main() {
 	for !rl.WindowShouldClose() {
 
 		if rl.IsWindowResized() {
-			camera.UpdateCanvasSize(rl.GetScreenWidth()/factor, rl.GetScreenHeight()/factor)
+			camera.UpdateCanvasSize(uint(rl.GetScreenWidth()/factor), uint(rl.GetScreenHeight()/factor))
 			rl.ImageResize(img, int32(camera.width), int32(camera.height))
 			rl.UnloadTexture(renderTexture)
 			renderTexture = rl.LoadTextureFromImage(img)

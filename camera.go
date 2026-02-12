@@ -31,13 +31,13 @@ type Camera struct {
 
 	updateView bool
 
-	width, height         int
+	width, height         uint
 	halfWidth, halfHeight float32
 
 	transforms Transforms
 }
 
-func NewCamera(w, h int, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Camera {
+func NewCamera(w, h uint, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Camera {
 	c := Camera{
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
@@ -57,7 +57,7 @@ func NewCamera(w, h int, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Ca
 	return c
 }
 
-func (c *Camera) UpdateCanvasSize(w, h int) {
+func (c *Camera) UpdateCanvasSize(w, h uint) {
 	c.width = w
 	c.height = h
 	c.halfWidth = float32(w) / 2
@@ -83,8 +83,8 @@ func (c *Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
 }
 
 func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
-	x := int((p.X + 1) * c.halfWidth)
-	y := int((1 - p.Y) * c.halfHeight)
+	x := (p.X + 1) * c.halfWidth
+	y := (1 - p.Y) * c.halfHeight
 
 	return ScreenPoint{
 		X:     x,
@@ -94,10 +94,11 @@ func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 }
 
 func (c *Camera) PutPixel(p ScreenPoint) {
-	if p.X < 0 || p.X >= c.width || p.Y < 0 || p.Y >= c.height {
+	x, y := uint(p.X), uint(p.Y)
+	if x >= c.width || y >= c.height {
 		return
 	}
-	c.canvas[p.Y*c.width+p.X] = p.color
+	c.canvas[y*c.width+x] = p.color
 }
 
 func (c *Camera) MoveBackForwad(unit float32) {
