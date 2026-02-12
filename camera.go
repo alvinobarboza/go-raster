@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"math"
 )
 
 type NDCPoint struct {
@@ -21,6 +22,31 @@ func (sp *ScreenPoint) IsTopOrLeft(sp2 ScreenPoint) bool {
 	return isTopEdge || isLeftEdge
 }
 
+type Plane struct {
+	normal   Vec3
+	distance float32
+}
+
+func NewPlane(p1, normal Vec3) Plane {
+	normal = normal.Normalized()
+	return Plane{
+		normal: normal,
+		distance: normal.MultiplyByVec3(p1),
+	}
+}
+
+func (p *Plane) SignedDistanceToPoint(point Vec3) float32 {
+	return p.normal.MultiplyByVec3(point) - p.distance
+}
+
+type Frustum struct {
+	topFace, bottomFace Plane
+
+	rightFace, leftFace Plane
+
+	farPlane, nearPlane Plane
+}
+
 type Camera struct {
 	canvas      []color.RGBA
 	fovAngle    float32
@@ -35,13 +61,15 @@ type Camera struct {
 	halfWidth, halfHeight float32
 
 	transforms Transforms
+
+	frustum Frustum
 }
 
 func NewCamera(w, h uint, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Camera {
 	c := Camera{
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
-		zNear:       -zNear,
+		zNear:       zNear,
 		sensitivity: sensitivity,
 		updateView:  true,
 		transforms: Transforms{
@@ -162,4 +190,19 @@ func (c *Camera) ToggleViewLock() {
 func (c *Camera) MoveVetically(unit float32) {
 	c.transforms.position.Y += unit
 	c.transforms.UpdateTransforms(true, true)
+}
+
+func (c *Camera) CalculateFrustum() {
+	zFar := float32(100)
+	camFront := c.transforms.forwardDirection
+	halfVSide := zFar * math.Tan(c.fovAngle * .5)
+	halfHSide := halfVSide * aspect;
+	frontMultFar := camFront.Scale(zFar);
+
+	c.frustum.nearPlane = NewPlane(c.transforms.position.Add(camFront.Scale(zNear)), camFront );
+	c.frustum.farFace = NewPlane( c.transforms.position.Add(frontMultFar) , camFront.Scale(-1) )
+	c.frustum.rightFace = NewPlane( c.transforms.position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up) )
+	c.frustum.leftFace = NewPlane( c.transforms.position, glm::cross(cam.Up, frontMultFar + cam.Right * halfHSide) )
+	c.frustum.topFace = NewPlane( c.transforms.position, glm::cross(cam.Right, frontMultFar - cam.Up * halfVSide) )
+	c.frustum.bottomFace = NewPlane( c.transforms.position, glm::cross(frontMultFar + cam.Up * halfVSide, cam.Right) )
 }
