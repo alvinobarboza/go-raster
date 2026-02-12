@@ -14,6 +14,13 @@ type ScreenPoint struct {
 	color color.RGBA
 }
 
+func (sp *ScreenPoint) IsTopOrLeft(sp2 ScreenPoint) bool {
+	edge := ScreenPoint{X: sp2.X - sp.X, Y: sp2.Y - sp.Y}
+	isTopEdge := edge.Y == 0 && edge.X > 0
+	isLeftEdge := edge.Y < 0
+	return isTopEdge || isLeftEdge
+}
+
 type Camera struct {
 	canvas      []color.RGBA
 	fovAngle    float32

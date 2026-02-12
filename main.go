@@ -23,7 +23,7 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	factor := 1
+	factor := 4
 	sensitivity := float32(20)
 	fov := float32(53)
 	camera := NewCamera(

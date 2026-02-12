@@ -83,12 +83,28 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	maxY := MaxIn(a.Y, MaxIn(b.Y, c.Y))
 	minY := MinIn(a.Y, MinIn(b.Y, c.Y))
 
+	bias1 := 0
+	bias2 := 0
+	bias3 := 0
+
+	if b.IsTopOrLeft(c) {
+		bias1 = -1
+	}
+
+	if c.IsTopOrLeft(a) {
+		bias2 = -1
+	}
+
+	if a.IsTopOrLeft(b) {
+		bias3 = -1
+	}
+
 	for x := minX; x <= maxX; x++ {
 		for y := minY; y <= maxY; y++ {
 			p := ScreenPoint{X: x, Y: y}
-			w1 := EdgeCross(b, c, p)
-			w2 := EdgeCross(c, a, p)
-			w3 := EdgeCross(a, b, p)
+			w1 := EdgeCross(b, c, p) + bias1
+			w2 := EdgeCross(c, a, p) + bias2
+			w3 := EdgeCross(a, b, p) + bias3
 
 			if w1 >= 0 && w2 >= 0 && w3 >= 0 {
 				s.activeCam.PutPixel(ScreenPoint{X: x, Y: y, color: tri.color})
