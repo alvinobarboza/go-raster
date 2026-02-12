@@ -198,7 +198,7 @@ func (c *Camera) CalculateFrustum() {
 	halfVSide := zFar * math.Tan(c.fovAngle * .5)
 	halfHSide := halfVSide * aspect;
 	frontMultFar := camFront.Scale(zFar);
-
+	//TODO: translate cpp to go
 	c.frustum.nearPlane = NewPlane(c.transforms.position.Add(camFront.Scale(zNear)), camFront );
 	c.frustum.farFace = NewPlane( c.transforms.position.Add(frontMultFar) , camFront.Scale(-1) )
 	c.frustum.rightFace = NewPlane( c.transforms.position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up) )
