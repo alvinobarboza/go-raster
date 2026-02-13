@@ -9,12 +9,12 @@ type Vec3_64 struct {
 	X, Y, Z float64
 }
 
-func (v Vec3_64) MultiplyByVec3(v1 Vec3_64) float64 {
+func (v Vec3_64) DotByVec3(v1 Vec3_64) float64 {
 	return v.X*v1.X + v.Y*v1.Y + v.Z*v1.Z
 }
 
 func (v Vec3_64) Dot() float64 {
-	return v.MultiplyByVec3(v)
+	return v.DotByVec3(v)
 }
 
 func (v Vec3_64) Length() float64 {

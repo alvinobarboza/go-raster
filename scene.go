@@ -152,15 +152,15 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 // temporary as this must be using frustum calculation
 // signed distance from view distance to point
 func (s *Scene) signedDistanceToPoint(planeNormal, point Vec3) float32 {
-	d := planeNormal.MultiplyByVec3(point)
+	d := planeNormal.DotByVec3(point)
 	d += s.activeCam.zNear
 	return d
 }
 
 func backFaceCulling(tri *Triangle, verts, normals []Vec3) bool {
-	angleA := normals[tri.n1].MultiplyByVec3(verts[tri.v1].Scale(-1))
-	angleB := normals[tri.n2].MultiplyByVec3(verts[tri.v2].Scale(-1))
-	angleC := normals[tri.n3].MultiplyByVec3(verts[tri.v3].Scale(-1))
+	angleA := normals[tri.n1].DotByVec3(verts[tri.v1].Scale(-1))
+	angleB := normals[tri.n2].DotByVec3(verts[tri.v2].Scale(-1))
+	angleC := normals[tri.n3].DotByVec3(verts[tri.v3].Scale(-1))
 	return angleA >= 0 || angleB >= 0 || angleC >= 0
 }
 

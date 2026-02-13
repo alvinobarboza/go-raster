@@ -92,7 +92,7 @@ func (s *BoundingSphere) CalculateBoundaries(verts []Vec3, scale Matrix) {
 
 	for _, v := range verts {
 		scaled := scale.MultiplyByVec3(v)
-		scaled = scaled.Sub(s.center)
+		scaled = scaled.Subtract(s.center)
 
 		r := scaled.Length()
 

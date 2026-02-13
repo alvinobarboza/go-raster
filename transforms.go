@@ -21,18 +21,19 @@ func NewVec3(x, y, z float32) Vec3 {
 	return Vec3{x, y, z}
 }
 
-func (v Vec3) MultiplyByVec3(v1 Vec3) float32 {
+func (v Vec3) DotByVec3(v1 Vec3) float32 {
 	return v.X*v1.X + v.Y*v1.Y + v.Z*v1.Z
 }
 
 func (v Vec3) Dot() float32 {
-	return v.MultiplyByVec3(v)
+	return v.DotByVec3(v)
 }
 
 func (v Vec3) Length() float32 {
 	return float32(math.Sqrt(float64(v.Dot())))
 }
 
+// vector * n
 func (v Vec3) Scale(n float32) Vec3 {
 	return Vec3{
 		X: v.X * n,
@@ -68,7 +69,7 @@ func (v Vec3) Add(v2 Vec3) Vec3 {
 	}
 }
 
-func (v Vec3) Sub(v2 Vec3) Vec3 {
+func (v Vec3) Subtract(v2 Vec3) Vec3 {
 	return Vec3{
 		X: v.X - v2.X,
 		Y: v.Y - v2.Y,
@@ -84,7 +85,7 @@ func (v Vec3) LerpTo(b Vec3, ratio float32) Vec3 {
 		return v
 	}
 
-	return b.Sub(v).Scale(ratio).Add(v)
+	return b.Subtract(v).Scale(ratio).Add(v)
 }
 
 func (v Vec3) Print(name string) {
