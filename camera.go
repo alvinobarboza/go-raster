@@ -30,21 +30,52 @@ type Plane struct {
 func NewPlane(p1, normal Vec3) Plane {
 	normal = normal.Normalized()
 	return Plane{
-		normal: normal,
-		distance: normal.MultiplyByVec3(p1),
+		normal:   normal,
+		distance: normal.DotByVec3(p1),
 	}
 }
 
 func (p *Plane) SignedDistanceToPoint(point Vec3) float32 {
-	return p.normal.MultiplyByVec3(point) - p.distance
+	return p.normal.DotByVec3(point) - p.distance
 }
 
 type Frustum struct {
-	topFace, bottomFace Plane
+	topPlane, bottomPlane Plane
 
-	rightFace, leftFace Plane
+	rightPlane, leftPlane Plane
 
 	farPlane, nearPlane Plane
+}
+
+func (f *Frustum) IsVertexInsideFrustum(p Vec3) bool {
+	np := f.nearPlane.SignedDistanceToPoint(p)
+	fp := f.farPlane.SignedDistanceToPoint(p)
+	rp := f.rightPlane.SignedDistanceToPoint(p)
+	lp := f.leftPlane.SignedDistanceToPoint(p)
+	tp := f.topPlane.SignedDistanceToPoint(p)
+	bp := f.bottomPlane.SignedDistanceToPoint(p)
+
+	if np > 0 && fp > 0 && rp > 0 && lp > 0 && tp > 0 && bp > 0 {
+		return true
+	}
+	return false
+}
+
+func (f *Frustum) IsBoundsInsideFrustum(b *BoundingSphere) bool {
+	np := f.nearPlane.SignedDistanceToPoint(b.centerWord)
+	fp := f.farPlane.SignedDistanceToPoint(b.centerWord)
+	rp := f.rightPlane.SignedDistanceToPoint(b.centerWord)
+	lp := f.leftPlane.SignedDistanceToPoint(b.centerWord)
+	tp := f.topPlane.SignedDistanceToPoint(b.centerWord)
+	bp := f.bottomPlane.SignedDistanceToPoint(b.centerWord)
+
+	r := b.radius
+
+	if np < -r || fp < -r || rp < -r || lp < -r || tp < -r || bp < -r {
+		return false
+	}
+
+	return true
 }
 
 type Camera struct {
@@ -92,6 +123,8 @@ func (c *Camera) UpdateCanvasSize(w, h uint) {
 	c.halfHeight = float32(h) / 2
 	c.aspectRatio = float32(w) / float32(h)
 	c.canvas = make([]color.RGBA, w*h)
+
+	c.CalculateFrustum()
 }
 
 func (c *Camera) ClearCanvas() {
@@ -193,16 +226,20 @@ func (c *Camera) MoveVetically(unit float32) {
 }
 
 func (c *Camera) CalculateFrustum() {
-	zFar := float32(100)
+	zFar := float32(20)
 	camFront := c.transforms.forwardDirection
-	halfVSide := zFar * math.Tan(c.fovAngle * .5)
-	halfHSide := halfVSide * aspect;
-	frontMultFar := camFront.Scale(zFar);
-	//TODO: translate cpp to go
-	c.frustum.nearPlane = NewPlane(c.transforms.position.Add(camFront.Scale(zNear)), camFront );
-	c.frustum.farFace = NewPlane( c.transforms.position.Add(frontMultFar) , camFront.Scale(-1) )
-	c.frustum.rightFace = NewPlane( c.transforms.position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up) )
-	c.frustum.leftFace = NewPlane( c.transforms.position, glm::cross(cam.Up, frontMultFar + cam.Right * halfHSide) )
-	c.frustum.topFace = NewPlane( c.transforms.position, glm::cross(cam.Right, frontMultFar - cam.Up * halfVSide) )
-	c.frustum.bottomFace = NewPlane( c.transforms.position, glm::cross(frontMultFar + cam.Up * halfVSide, cam.Right) )
+	camRight := NewVec3(1, 0, 0)
+	camUp := NewVec3(0, 1, 0)
+	camPos := NewVec3(0, 0, 0)
+
+	halfVSide := zFar * float32(math.Tan(float64(c.fovAngle*DegToRad)*.5))
+	halfHSide := halfVSide * c.aspectRatio
+	frontMultFar := camFront.Scale(zFar)
+
+	c.frustum.nearPlane = NewPlane(camPos.Add(camFront.Scale(c.zNear)), camFront)
+	c.frustum.farPlane = NewPlane(camPos.Add(frontMultFar), camFront.Scale(-1))
+	c.frustum.rightPlane = NewPlane(camPos, frontMultFar.Add(camRight.Scale(halfHSide)).Cross(camUp))
+	c.frustum.leftPlane = NewPlane(camPos, camUp.Cross(frontMultFar.Subtract(camRight.Scale(halfHSide))))
+	c.frustum.topPlane = NewPlane(camPos, frontMultFar.Subtract(camUp.Scale(halfVSide)).Cross(camRight))
+	c.frustum.bottomPlane = NewPlane(camPos, camRight.Cross(frontMultFar.Add(camUp.Scale(halfVSide))))
 }

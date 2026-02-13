@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 )
@@ -149,28 +150,17 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	}
 }
 
-// temporary as this must be using frustum calculation
-// signed distance from view distance to point
-func (s *Scene) signedDistanceToPoint(planeNormal, point Vec3) float32 {
-	d := planeNormal.DotByVec3(point)
-	d += s.activeCam.zNear
-	return d
-}
-
-func backFaceCulling(tri *Triangle, verts, normals []Vec3) bool {
-	angleA := normals[tri.n1].DotByVec3(verts[tri.v1].Scale(-1))
-	angleB := normals[tri.n2].DotByVec3(verts[tri.v2].Scale(-1))
-	angleC := normals[tri.n3].DotByVec3(verts[tri.v3].Scale(-1))
-	return angleA >= 0 || angleB >= 0 || angleC >= 0
-}
-
 func (s *Scene) Render() {
 	for _, o := range s.objects {
 		matTransform := s.activeCam.transforms.matrixTransforms.MultiplyByMatrix(o.transforms.matrixTransforms)
 		matRoation := s.activeCam.transforms.rotationMat.MultiplyByMatrix(o.transforms.rotationMat)
 
 		o.boundingSphere.centerWord = matTransform.MultiplyByVec3(o.boundingSphere.center)
-		planeNormal := s.activeCam.transforms.forwardDirection
+
+		if !s.activeCam.frustum.IsBoundsInsideFrustum(&o.boundingSphere) {
+			fmt.Println("verts skipped: ", len(o.mesh.verts))
+			continue
+		}
 
 		for i, v := range o.mesh.verts {
 			o.mesh.vertsWorld[i] = matTransform.MultiplyByVec3(v)
@@ -180,16 +170,15 @@ func (s *Scene) Render() {
 			o.mesh.normalsWorld[i] = matRoation.MultiplyByVec3(n)
 		}
 
+		// TODO: generate new tris on frustum plane intersections
 		for _, t := range o.mesh.tris {
-			if !backFaceCulling(&t, o.mesh.vertsWorld, o.mesh.normalsWorld) {
+			if !t.backFaceCulling(o.mesh.vertsWorld, o.mesh.normalsWorld) {
 				continue
 			}
 
-			d1 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v1])
-			d2 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v2])
-			d3 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v3])
-
-			if d1 <= 0.1 || d2 <= 0.1 || d3 <= 0.1 {
+			if !s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v1]) ||
+				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v2]) ||
+				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v3]) {
 				continue
 			}
 
@@ -197,14 +186,13 @@ func (s *Scene) Render() {
 		}
 
 		for _, t := range o.mesh.tris {
-			if !backFaceCulling(&t, o.mesh.vertsWorld, o.mesh.normalsWorld) {
-				continue
-			}
-			d1 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v1])
-			d2 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v2])
-			d3 := s.signedDistanceToPoint(planeNormal, o.mesh.vertsWorld[t.v3])
+			// if !t.backFaceCulling(o.mesh.vertsWorld, o.mesh.normalsWorld) {
+			// 	continue
+			// }
 
-			if d1 <= 0.1 || d2 <= 0.1 || d3 <= 0.1 {
+			if !s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v1]) ||
+				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v2]) ||
+				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v3]) {
 				continue
 			}
 
