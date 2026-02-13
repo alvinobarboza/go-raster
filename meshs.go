@@ -15,6 +15,13 @@ type Triangle struct {
 	color      color.RGBA
 }
 
+func (t *Triangle) backFaceCulling(verts, normals []Vec3) bool {
+	angleA := normals[t.n1].DotByVec3(verts[t.v1].Scale(-1))
+	angleB := normals[t.n2].DotByVec3(verts[t.v2].Scale(-1))
+	angleC := normals[t.n3].DotByVec3(verts[t.v3].Scale(-1))
+	return angleA >= 0 || angleB >= 0 || angleC >= 0
+}
+
 type Texture struct {
 	width, height int
 	pixels        []color.RGBA
