@@ -1,0 +1,1 @@
+go build -o dist/raster.exe .; ./dist/raster.exe
