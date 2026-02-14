@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 )
@@ -158,16 +157,17 @@ func (s *Scene) Render() {
 		o.boundingSphere.centerWord = matTransform.MultiplyByVec3(o.boundingSphere.center)
 
 		if !s.activeCam.frustum.IsBoundsInsideFrustum(&o.boundingSphere) {
-			fmt.Println("verts skipped: ", len(o.mesh.verts))
 			continue
 		}
 
-		for i, v := range o.mesh.verts {
-			o.mesh.vertsWorld[i] = matTransform.MultiplyByVec3(v)
-		}
+		for _, t := range o.mesh.tris {
+			o.mesh.vertsWorld[t.v1] = matTransform.MultiplyByVec3(o.mesh.verts[t.v1])
+			o.mesh.vertsWorld[t.v2] = matTransform.MultiplyByVec3(o.mesh.verts[t.v2])
+			o.mesh.vertsWorld[t.v3] = matTransform.MultiplyByVec3(o.mesh.verts[t.v3])
 
-		for i, n := range o.mesh.normals {
-			o.mesh.normalsWorld[i] = matRoation.MultiplyByVec3(n)
+			o.mesh.normalsWorld[t.n1] = matRoation.MultiplyByVec3(o.mesh.normals[t.n1])
+			o.mesh.normalsWorld[t.n2] = matRoation.MultiplyByVec3(o.mesh.normals[t.n2])
+			o.mesh.normalsWorld[t.n3] = matRoation.MultiplyByVec3(o.mesh.normals[t.n3])
 		}
 
 		// TODO: generate new tris on frustum plane intersections
