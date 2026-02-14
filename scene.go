@@ -109,6 +109,7 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 	}
 
 	area := float32(EdgeCross(v0, v1, v2))
+	area = 1 / area
 
 	// pixel's center
 	p := ScreenPoint{X: minX + 0.5, Y: minY + 0.5}
@@ -124,9 +125,9 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 		for x := minX; x <= maxX; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				// TODO: use to interpolate depth and uv coordinates
-				alpha := w0 / area
-				beta := w1 / area
-				gama := w2 / area
+				alpha := w0 * area
+				beta := w1 * area
+				gama := w2 * area
 
 				r := 255 * alpha
 				g := 255 * beta
