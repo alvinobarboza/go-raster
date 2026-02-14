@@ -133,6 +133,14 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 				g := 255 * beta
 				b := 255 * gama
 
+				// uv1 := uv[tri.u1].Scale(alpha)
+				// uv2 := uv[tri.u1].Scale(beta)
+				// uv3 := uv[tri.u1].Scale(gama)
+
+				// uvCoord := uv1.Add(uv2).Add(uv3)
+
+				// fmt.Println(uvCoord)
+
 				s.activeCam.PutPixel(uint(x), uint(y), color.RGBA{
 					A: 255,
 					R: uint8(r),
@@ -199,6 +207,6 @@ func (s *Scene) Render() {
 
 			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
-		// break
+		break
 	}
 }

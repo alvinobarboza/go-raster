@@ -32,26 +32,29 @@ func main() {
 		sensitivity,
 		NearPlane,
 		fov,
-		NewVec3(0, 0.03, 0.8),
+		NewVec3(0, 0.03, -4),
 		NewVec3(0, 0, 0),
 	)
 
-	cubeMesh, err := LoadMeshFromFile("./assets/cube.obj", "./assets/default.jpg")
-	if err != nil {
-		panic(err)
-	}
+	scene := NewScene(&camera)
 
-	utahTeapotMesh, err := LoadMeshFromFile("./assets/utah-assets/utah_teapot.obj", "./assets/default.jpg")
+	cubeMesh, err := LoadMeshFromFile("./assets/cube.obj", "./assets/default.jpg")
 	if err != nil {
 		panic(err)
 	}
 	cube := NewModel(
 		&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(16/8, 1, 9/8), NewVec3(0, 0, 0)))
 
+	utahTeapotMesh, err := LoadMeshFromFile("./assets/utah-assets/utah_teapot.obj", "./assets/default.jpg")
+	if err != nil {
+		panic(err)
+	}
+
 	utahTeapot := NewModel(
 		&utahTeapotMesh, NewTransforms(NewVec3(5, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
 
-	scene := NewScene(&camera)
+	triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
+	scene.AddMesh(&triangle)
 	scene.AddMesh(&cube)
 	scene.AddMesh(&utahTeapot)
 
@@ -149,9 +152,9 @@ func main() {
 		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime(), mouseDelta.Y*rl.GetFrameTime())
 
 		if backForward != 0 || leftRight != 0 {
-			cube.transforms.position.X += leftRight
-			cube.transforms.position.Z += backForward
-			cube.UpdateTransforms()
+			triangle.transforms.position.X += leftRight
+			triangle.transforms.position.Z += backForward
+			triangle.UpdateTransforms()
 		}
 
 		if backForwardCam != 0 || leftRightCam != 0 || upDownCam != 0 {

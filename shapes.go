@@ -65,9 +65,32 @@ var trisCube = []Triangle{
 
 func NewCube(pos, scale, rotation Vec3) Model {
 	m := NewMesh(vertsCube, nil, nil, trisCube, nil)
-	return NewModel(&m, Transforms{
-		position: pos,
-		scale:    scale,
-		rotation: rotation,
-	})
+	return NewModel(&m, NewTransforms(pos, scale, rotation))
+}
+
+func NewTriangle(pos, scale, rotation Vec3) Model {
+	uv_verts := []Vec3{
+		{X: 1, Y: 1, Z: 0}, // 0 front top right
+		{X: 0, Y: 1, Z: 0}, // 1 front top left
+		{X: 0, Y: 0, Z: 0}, // 2 front bottom left
+	}
+	tris_verts := []Vec3{
+		{X: 1, Y: 1, Z: 0},   // 0 front top right
+		{X: -1, Y: 1, Z: 0},  // 1 front top left
+		{X: -1, Y: -1, Z: 0}, // 2 front bottom left
+	}
+	tris_tris := []Triangle{
+		{
+			v1: 2, v2: 1, v3: 0,
+			u1: 0, u2: 1, u3: 2,
+			n1: 0, n2: 0, n3: 0,
+			color: Red,
+		},
+	}
+	tris_normal := []Vec3{
+		{Z: -1},
+	}
+
+	m := NewMesh(tris_verts, tris_normal, uv_verts, tris_tris, nil)
+	return NewModel(&m, NewTransforms(pos, scale, rotation))
 }
