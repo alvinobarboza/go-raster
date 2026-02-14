@@ -70,7 +70,7 @@ func (s *Scene) DrawWireframeTriangle(verts []Vec3, tri Triangle) {
 	s.DrawLine(c, a)
 }
 
-func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
+func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1], tri.color)
 	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], tri.color)
 	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
@@ -84,27 +84,27 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	maxX := float32(math.Ceil(float64(Maxf(v0.X, Maxf(v1.X, v2.X)))))
 	maxY := float32(math.Ceil(float64(Maxf(v0.Y, Maxf(v1.Y, v2.Y)))))
 
-	deltaW0Col := v1.Y - v2.Y
-	deltaW1Col := v2.Y - v0.Y
-	deltaW2Col := v0.Y - v1.Y
+	deltaW0Col := v0.Y - v1.Y
+	deltaW1Col := v1.Y - v2.Y
+	deltaW2Col := v2.Y - v0.Y
 
-	deltaW0Row := v2.X - v1.X
-	deltaW1Row := v0.X - v2.X
-	deltaW2Row := v1.X - v0.X
+	deltaW0Row := v1.X - v0.X
+	deltaW1Row := v2.X - v1.X
+	deltaW2Row := v0.X - v2.X
 
 	bias0 := float32(0)
 	bias1 := float32(0)
 	bias2 := float32(0)
 
-	if v1.IsTopOrLeft(v2) {
+	if v0.IsTopOrLeft(v1) {
 		bias0 = -1
 	}
 
-	if v2.IsTopOrLeft(v0) {
+	if v1.IsTopOrLeft(v2) {
 		bias1 = -1
 	}
 
-	if v0.IsTopOrLeft(v1) {
+	if v2.IsTopOrLeft(v0) {
 		bias2 = -1
 	}
 
@@ -113,9 +113,9 @@ func (s *Scene) RenderTriangle(verts []Vec3, tri Triangle) {
 	// pixel's center
 	p := ScreenPoint{X: minX + 0.5, Y: minY + 0.5}
 
-	w0Row := EdgeCross(v1, v2, p) + bias0
-	w1Row := EdgeCross(v2, v0, p) + bias1
-	w2Row := EdgeCross(v0, v1, p) + bias2
+	w0Row := EdgeCross(v0, v1, p) + bias0
+	w1Row := EdgeCross(v1, v2, p) + bias1
+	w2Row := EdgeCross(v2, v0, p) + bias2
 
 	for y := minY; y <= maxY; y++ {
 		w0 := w0Row
@@ -182,7 +182,7 @@ func (s *Scene) Render() {
 				continue
 			}
 
-			s.RenderTriangle(o.mesh.vertsWorld, t)
+			s.RenderTriangle(o.mesh.vertsWorld, o.mesh.uv, t)
 		}
 
 		for _, t := range o.mesh.tris {
