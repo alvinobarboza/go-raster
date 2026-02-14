@@ -6,13 +6,11 @@ import (
 )
 
 type NDCPoint struct {
-	X, Y  float32
-	color color.RGBA
+	X, Y float32
 }
 
 type ScreenPoint struct {
-	X, Y  float32
-	color color.RGBA
+	X, Y float32
 }
 
 func (sp *ScreenPoint) IsTopOrLeft(sp2 ScreenPoint) bool {
@@ -133,13 +131,12 @@ func (c *Camera) ClearCanvas() {
 	}
 }
 
-func (c *Camera) ProjectVertexToNDC(v Vec3, cl color.RGBA) NDCPoint {
+func (c *Camera) ProjectVertexToNDC(v Vec3) NDCPoint {
 	zXInverse := 1 / (v.Z * c.aspectRatio)
 	zYInverse := 1 / v.Z
 	return NDCPoint{
-		X:     (v.X * c.fovScaling) * zXInverse,
-		Y:     (v.Y * c.fovScaling) * zYInverse,
-		color: cl,
+		X: (v.X * c.fovScaling) * zXInverse,
+		Y: (v.Y * c.fovScaling) * zYInverse,
 	}
 }
 
@@ -148,18 +145,16 @@ func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 	y := (1 - p.Y) * c.halfHeight
 
 	return ScreenPoint{
-		X:     x,
-		Y:     y,
-		color: p.color,
+		X: x,
+		Y: y,
 	}
 }
 
-func (c *Camera) PutPixel(p ScreenPoint) {
-	x, y := uint(p.X), uint(p.Y)
+func (c *Camera) PutPixel(x, y uint, cl color.RGBA) {
 	if x >= c.width || y >= c.height {
 		return
 	}
-	c.canvas[y*c.width+x] = p.color
+	c.canvas[y*c.width+x] = cl
 }
 
 func (c *Camera) MoveBackForwad(unit float32) {

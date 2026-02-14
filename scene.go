@@ -21,7 +21,7 @@ func (s *Scene) AddMesh(o *Model) {
 	s.objects = append(s.objects, o)
 }
 
-func (s *Scene) DrawLine(a, b ScreenPoint) {
+func (s *Scene) DrawLine(a, b ScreenPoint, cl color.RGBA) {
 	dx := b.X - a.X
 	dy := b.Y - a.Y
 
@@ -35,7 +35,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint) {
 		abY := float32(b.Y-a.Y) / float32(b.X-a.X)
 		ys := float32(a.Y)
 		for x := a.X; x <= b.X; x++ {
-			s.activeCam.PutPixel(ScreenPoint{X: x, Y: ys, color: a.color})
+			s.activeCam.PutPixel(uint(x), uint(ys), cl)
 			ys += abY
 		}
 		return
@@ -51,29 +51,29 @@ func (s *Scene) DrawLine(a, b ScreenPoint) {
 	xs := float32(a.X)
 
 	for y := a.Y; y <= b.Y; y++ {
-		s.activeCam.PutPixel(ScreenPoint{X: xs, Y: y, color: a.color})
+		s.activeCam.PutPixel(uint(xs), uint(y), cl)
 		xs += abX
 	}
 }
 
 func (s *Scene) DrawWireframeTriangle(verts []Vec3, tri Triangle) {
-	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1], Black)
-	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], Black)
-	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], Black)
+	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1])
+	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2])
+	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3])
 
 	a := s.activeCam.NDCtoScreen(va)
 	b := s.activeCam.NDCtoScreen(vb)
 	c := s.activeCam.NDCtoScreen(vc)
 
-	s.DrawLine(a, b)
-	s.DrawLine(b, c)
-	s.DrawLine(c, a)
+	s.DrawLine(a, b, Black)
+	s.DrawLine(b, c, Black)
+	s.DrawLine(c, a, Black)
 }
 
 func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
-	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1], tri.color)
-	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2], tri.color)
-	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3], tri.color)
+	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1])
+	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2])
+	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3])
 
 	v0 := s.activeCam.NDCtoScreen(va)
 	v1 := s.activeCam.NDCtoScreen(vb)
@@ -124,20 +124,20 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 		for x := minX; x <= maxX; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				// TODO: use to interpolate depth and uv coordinates
-				alpha := float32(w0) / area
-				beta := float32(w1) / area
-				gama := float32(w2) / area
+				alpha := w0 / area
+				beta := w1 / area
+				gama := w2 / area
 
 				r := 255 * alpha
 				g := 255 * beta
 				b := 255 * gama
 
-				s.activeCam.PutPixel(ScreenPoint{X: x, Y: y, color: color.RGBA{
+				s.activeCam.PutPixel(uint(x), uint(y), color.RGBA{
 					A: 255,
 					R: uint8(r),
 					G: uint8(g),
 					B: uint8(b),
-				}})
+				})
 			}
 			w0 += deltaW0Col
 			w1 += deltaW1Col
