@@ -70,7 +70,7 @@ func (s *Scene) DrawWireframeTriangle(verts []Vec3, tri Triangle) {
 	s.DrawLine(c, a, Black)
 }
 
-func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
+func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 	va := s.activeCam.ProjectVertexToNDC(verts[tri.v1])
 	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2])
 	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3])
@@ -124,29 +124,34 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle) {
 		w2 := w2Row
 		for x := minX; x <= maxX; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-				// TODO: use to interpolate depth and uv coordinates
-				alpha := w0 * area
-				beta := w1 * area
-				gama := w2 * area
+				/*
+					      v0 (Top)
+					      /\
+					     /  \
+					    /    \    <-- The distance from this edge (v0-v1)
+					   /      \       towards v2 is w0.
+					  /   P    \
+					 /    |     \
+					v1 ---|------v2
+					      ^
+					      |
+					The distance from this edge (v1-v2)
+					towards v0 is w1.
+					w1 = v1 -> v2 distance to v0 = a = tri.v1
+					w2 = v2 -> v0 distance to v1 = b = tri.v2
+					w0 = v0 -> v1 distance to v2 = c = tri.v3
+				*/
+				alpha := w1 * area
+				beta := w2 * area
+				gama := w0 * area
 
-				r := 255 * alpha
-				g := 255 * beta
-				b := 255 * gama
+				uv1 := uv[tri.u1].Scale(alpha)
+				uv2 := uv[tri.u2].Scale(beta)
+				uv3 := uv[tri.u3].Scale(gama)
 
-				// uv1 := uv[tri.u1].Scale(alpha)
-				// uv2 := uv[tri.u1].Scale(beta)
-				// uv3 := uv[tri.u1].Scale(gama)
+				uvCoord := uv1.Add(uv2).Add(uv3)
 
-				// uvCoord := uv1.Add(uv2).Add(uv3)
-
-				// fmt.Println(uvCoord)
-
-				s.activeCam.PutPixel(uint(x), uint(y), color.RGBA{
-					A: 255,
-					R: uint8(r),
-					G: uint8(g),
-					B: uint8(b),
-				})
+				s.activeCam.PutPixel(uint(x), uint(y), t.TexelColor(uvCoord))
 			}
 			w0 += deltaW0Col
 			w1 += deltaW1Col
@@ -191,7 +196,7 @@ func (s *Scene) Render() {
 				continue
 			}
 
-			s.RenderTriangle(o.mesh.vertsWorld, o.mesh.uv, t)
+			s.RenderTriangle(o.mesh.vertsWorld, o.mesh.uv, t, o.mesh.texture)
 		}
 
 		for _, t := range o.mesh.tris {
@@ -207,6 +212,6 @@ func (s *Scene) Render() {
 
 			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
-		break
+		// break
 	}
 }

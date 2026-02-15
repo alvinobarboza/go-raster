@@ -27,6 +27,22 @@ type Texture struct {
 	pixels        []color.RGBA
 }
 
+func (t *Texture) UVToWH(uv Vec3) (int, int) {
+	w, h := uv.X*float32(t.width), uv.Y*float32(t.height)
+	return int(w), int(h)
+}
+
+func (t *Texture) TexelColor(uv Vec3) color.RGBA {
+	w, h := t.UVToWH(uv)
+
+	i := h*t.width + w
+
+	if i >= len(t.pixels) {
+		i = len(t.pixels) - 1
+	}
+	return t.pixels[i]
+}
+
 type MeshData struct {
 	tris                  []Triangle
 	verts, vertsWorld     []Vec3

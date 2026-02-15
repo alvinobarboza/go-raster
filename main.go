@@ -55,7 +55,9 @@ func main() {
 	utahTeapot := NewModel(
 		&utahTeapotMesh, NewTransforms(NewVec3(5, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
 
-	triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
+	triangle := NewTriangle(NewVec3(0, 0, 20.9), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
+	triangle.mesh.texture = LoadDefaultTexture()
+
 	scene.AddMesh(&triangle)
 	scene.AddMesh(&cube)
 	scene.AddMesh(&utahTeapot)
