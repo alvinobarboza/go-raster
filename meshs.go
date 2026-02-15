@@ -63,11 +63,14 @@ func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
 	for y := range height {
 		for x := range width {
 			r, g, b, a := img.At(x, y).RGBA()
+
+			// From alpha pre-multiplied values
+			// 0xFF00 > 0x00FF > 0xFF
 			pixels = append(pixels, color.RGBA{
-				R: uint8(r),
-				G: uint8(g),
-				B: uint8(b),
-				A: uint8(a),
+				R: uint8(r >> 8),
+				G: uint8(g >> 8),
+				B: uint8(b >> 8),
+				A: uint8(a >> 8),
 			})
 		}
 	}
