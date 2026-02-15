@@ -82,6 +82,7 @@ type Camera struct {
 	aspectRatio float32
 	fovScaling  float32
 	zNear       float32
+	zFar        float32
 	sensitivity float32
 
 	updateView bool
@@ -94,11 +95,12 @@ type Camera struct {
 	frustum Frustum
 }
 
-func NewCamera(w, h uint, sensitivity, zNear, fovAngle float32, pos, rot Vec3) Camera {
+func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot Vec3) Camera {
 	c := Camera{
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
 		zNear:       zNear,
+		zFar:        zFar,
 		sensitivity: sensitivity,
 		updateView:  true,
 		transforms: Transforms{
@@ -221,15 +223,14 @@ func (c *Camera) MoveVetically(unit float32) {
 }
 
 func (c *Camera) CalculateFrustum() {
-	zFar := float32(20)
 	camFront := c.transforms.forwardDirection
 	camRight := NewVec3(1, 0, 0)
 	camUp := NewVec3(0, 1, 0)
 	camPos := NewVec3(0, 0, 0)
 
-	halfVSide := zFar * float32(math.Tan(float64(c.fovAngle*DegToRad)*.5))
+	halfVSide := c.zFar * float32(math.Tan(float64(c.fovAngle*DegToRad)*.5))
 	halfHSide := halfVSide * c.aspectRatio
-	frontMultFar := camFront.Scale(zFar)
+	frontMultFar := camFront.Scale(c.zFar)
 
 	c.frustum.nearPlane = NewPlane(camPos.Add(camFront.Scale(c.zNear)), camFront)
 	c.frustum.farPlane = NewPlane(camPos.Add(frontMultFar), camFront.Scale(-1))

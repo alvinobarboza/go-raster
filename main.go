@@ -14,6 +14,7 @@ const (
 	ScreenHeight = 720
 
 	NearPlane = 0.2
+	FarPlane  = 25
 )
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 		uint(ScreenHeight/factor),
 		sensitivity,
 		NearPlane,
+		FarPlane,
 		fov,
 		NewVec3(0, 0.03, -4),
 		NewVec3(0, 0, 0),
