@@ -6,6 +6,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
+	"math"
 )
 
 type Triangle struct {
@@ -28,6 +29,16 @@ type Texture struct {
 }
 
 func (t *Texture) UVToWH(uv Vec3) (int, int) {
+	if uv.X > 1 {
+		iX := math.Trunc(float64(uv.X))
+		uv.X = uv.X - float32(iX)
+	}
+
+	if uv.Y > 1 {
+		iX := math.Trunc(float64(uv.Y))
+		uv.Y = uv.Y - float32(iX)
+	}
+
 	w, h := uv.X*float32(t.width), uv.Y*float32(t.height)
 	return int(w), int(h)
 }
