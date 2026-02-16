@@ -120,7 +120,7 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 	texture, err := LoadTexture(texturePath)
 	if err != nil {
 		log.Println(err)
-		return MeshData{}, nil
+		return MeshData{}, err
 	}
 
 	// Calculate avarege color for whole object, very hacky to be honest

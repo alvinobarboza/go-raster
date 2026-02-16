@@ -40,27 +40,15 @@ func main() {
 
 	scene := NewScene(&camera)
 
-	cubeMesh, err := LoadMeshFromFile("./assets/cube.obj", "./assets/default.jpg")
-	if err != nil {
-		panic(err)
-	}
-	cube := NewModel(
-		&cubeMesh, NewTransforms(NewVec3(0, 0, 4), NewVec3(16/8, 1, 9/8), NewVec3(0, 0, 0)))
-
-	utahTeapotMesh, err := LoadMeshFromFile("./assets/utah-assets/utah_teapot.obj", "./assets/default.jpg")
+	//TODO: fix loading real model data
+	models, err := LoadSceneFromJSON("./scene.json")
 	if err != nil {
 		panic(err)
 	}
 
-	utahTeapot := NewModel(
-		&utahTeapotMesh, NewTransforms(NewVec3(5, 0, 4), NewVec3(1, 1, 1), NewVec3(0, 0, 0)))
-
-	triangle := NewTriangle(NewVec3(0, 0, 20.9), NewVec3(1, 1, 1), NewVec3(0, 0, 0))
-	triangle.mesh.texture = LoadDefaultTexture()
-
-	scene.AddMesh(&triangle)
-	scene.AddMesh(&cube)
-	scene.AddMesh(&utahTeapot)
+	for _, m := range models {
+		scene.AddMesh(&m)
+	}
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -72,9 +60,6 @@ func main() {
 
 	renderTexture := rl.LoadTextureFromImage(img)
 	defer rl.UnloadTexture(renderTexture)
-
-	backForward := float32(0.0)
-	leftRight := float32(0.0)
 
 	backForwardCam := float32(0.0)
 	leftRightCam := float32(0.0)
@@ -105,28 +90,9 @@ func main() {
 			cursorEnabled = !cursorEnabled
 		}
 
-		backForward = 0
-		leftRight = 0
-
 		backForwardCam = 0
 		leftRightCam = 0
 		upDownCam = 0
-
-		if rl.IsKeyDown(rl.KeyUp) {
-			backForward = .1
-		}
-
-		if rl.IsKeyDown(rl.KeyDown) {
-			backForward = -.1
-		}
-
-		if rl.IsKeyDown(rl.KeyLeft) {
-			leftRight = -.1
-		}
-
-		if rl.IsKeyDown(rl.KeyRight) {
-			leftRight = .1
-		}
 
 		if rl.IsKeyDown(rl.KeyW) {
 			backForwardCam = .1
@@ -162,12 +128,6 @@ func main() {
 
 		mouseDelta := rl.GetMouseDelta()
 		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime(), mouseDelta.Y*rl.GetFrameTime())
-
-		if backForward != 0 || leftRight != 0 {
-			triangle.transforms.position.X += leftRight
-			triangle.transforms.position.Z += backForward
-			triangle.UpdateTransforms()
-		}
 
 		if backForwardCam != 0 || leftRightCam != 0 || upDownCam != 0 {
 			camera.MoveBackForwad(backForwardCam)
