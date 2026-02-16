@@ -78,6 +78,8 @@ func (f *Frustum) IsBoundsInsideFrustum(b *BoundingSphere) bool {
 
 type Camera struct {
 	canvas      []color.RGBA
+	depthBuffer []float32
+
 	fovAngle    float32
 	aspectRatio float32
 	fovScaling  float32
@@ -85,7 +87,9 @@ type Camera struct {
 	zFar        float32
 	sensitivity float32
 
-	updateView bool
+	updateView  bool
+	renderDepth bool
+	renderWire  bool
 
 	width, height         uint
 	halfWidth, halfHeight float32
@@ -103,6 +107,8 @@ func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot V
 		zFar:        zFar,
 		sensitivity: sensitivity,
 		updateView:  true,
+		renderDepth: false,
+		renderWire:  false,
 		transforms: Transforms{
 			scale:            NewVec3(1, 1, 1),
 			rotation:         rot,
@@ -123,6 +129,7 @@ func (c *Camera) UpdateCanvasSize(w, h uint) {
 	c.halfHeight = float32(h) / 2
 	c.aspectRatio = float32(w) / float32(h)
 	c.canvas = make([]color.RGBA, w*h)
+	c.depthBuffer = make([]float32, w*h)
 
 	c.CalculateFrustum()
 }
@@ -130,6 +137,7 @@ func (c *Camera) UpdateCanvasSize(w, h uint) {
 func (c *Camera) ClearCanvas() {
 	for i := range len(c.canvas) {
 		c.canvas[i] = Gray
+		c.depthBuffer[i] = 0
 	}
 }
 
@@ -152,11 +160,26 @@ func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 	}
 }
 
-func (c *Camera) PutPixel(x, y uint, cl color.RGBA) {
+func (c *Camera) PutPixel(x, y uint, cl color.RGBA, depth float32) {
 	if x >= c.width || y >= c.height {
 		return
 	}
-	c.canvas[y*c.width+x] = cl
+	i := y*c.width + x
+
+	if c.depthBuffer[i] > depth {
+		return
+	}
+	c.depthBuffer[i] = depth
+
+	if c.renderDepth {
+		c.canvas[i].A = 255
+		c.canvas[i].R = uint8(255 * depth)
+		c.canvas[i].G = uint8(255 * depth)
+		c.canvas[i].B = uint8(255 * depth)
+		return
+	}
+
+	c.canvas[i] = cl
 }
 
 func (c *Camera) MoveBackForwad(unit float32) {
@@ -215,6 +238,14 @@ func (c *Camera) UpdateRotation(x float32, y float32) {
 
 func (c *Camera) ToggleViewLock() {
 	c.updateView = !c.updateView
+}
+
+func (c *Camera) ToggleDepthRender() {
+	c.renderDepth = !c.renderDepth
+}
+
+func (c *Camera) ToggleWireRender() {
+	c.renderWire = !c.renderWire
 }
 
 func (c *Camera) MoveVetically(unit float32) {

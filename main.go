@@ -24,7 +24,7 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	factor := 2
+	factor := 1
 	sensitivity := float32(10)
 	fov := float32(53)
 	camera := NewCamera(
@@ -152,6 +152,14 @@ func main() {
 			upDownCam = -.1
 		}
 
+		if rl.IsKeyPressed(rl.KeyZ) {
+			camera.ToggleDepthRender()
+		}
+
+		if rl.IsKeyPressed(rl.KeyX) {
+			camera.ToggleWireRender()
+		}
+
 		mouseDelta := rl.GetMouseDelta()
 		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime(), mouseDelta.Y*rl.GetFrameTime())
 
@@ -183,10 +191,10 @@ func main() {
 			rl.White,
 		)
 
-		rl.DrawText("RASTER", int32(rl.GetScreenWidth()-140), int32(rl.GetScreenHeight()-20), 20, rl.Gray)
+		rl.DrawText("raster", int32(rl.GetScreenWidth()-70), int32(rl.GetScreenHeight()-20), 20, Black)
 
-		rl.DrawRectangle(2, 2, 305, 230, rl.Fade(rl.DarkGray, 0.6))
-		rl.DrawRectangleLines(2, 2, 305, 230, rl.Gray)
+		rl.DrawRectangle(2, 2, 305, 250, rl.Fade(rl.DarkGray, 0.6))
+		rl.DrawRectangleLines(2, 2, 305, 250, rl.Gray)
 
 		rl.DrawFPS(10, 10)
 		rl.DrawText(
@@ -199,7 +207,9 @@ func main() {
 		rl.DrawText("Move: A/W/S/D",
 			10, 140, 20, rl.White)
 		rl.DrawText("Mouse view moviment: \nTab to Lock/Unlock",
-			10, 162, 20, rl.White)
+			10, 163, 20, rl.White)
+		rl.DrawText("Depth toggle: Z", 10, 204, 20, rl.White)
+		rl.DrawText("Wireframe toggle: X", 10, 224, 20, rl.White)
 
 		rl.EndDrawing()
 	}

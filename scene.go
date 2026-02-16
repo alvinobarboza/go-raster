@@ -35,7 +35,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint, cl color.RGBA) {
 		abY := float32(b.Y-a.Y) / float32(b.X-a.X)
 		ys := float32(a.Y)
 		for x := a.X; x <= b.X; x++ {
-			s.activeCam.PutPixel(uint(x), uint(ys), cl)
+			s.activeCam.PutPixel(uint(x), uint(ys), cl, 1)
 			ys += abY
 		}
 		return
@@ -51,7 +51,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint, cl color.RGBA) {
 	xs := float32(a.X)
 
 	for y := a.Y; y <= b.Y; y++ {
-		s.activeCam.PutPixel(uint(xs), uint(y), cl)
+		s.activeCam.PutPixel(uint(xs), uint(y), cl, 1)
 		xs += abX
 	}
 }
@@ -105,15 +105,15 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 	bias2 := float32(0)
 
 	if v0.IsTopOrLeft(v1) {
-		bias0 = -1
+		bias0 = -0.0001
 	}
 
 	if v1.IsTopOrLeft(v2) {
-		bias1 = -1
+		bias1 = -0.0001
 	}
 
 	if v2.IsTopOrLeft(v0) {
-		bias2 = -1
+		bias2 = -0.0001
 	}
 
 	area := float32(EdgeCross(v0, v1, v2))
@@ -161,7 +161,7 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 
 				uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
 
-				s.activeCam.PutPixel(uint(x), uint(y), t.TexelColor(uvCoord))
+				s.activeCam.PutPixel(uint(x), uint(y), t.TexelColor(uvCoord), depth)
 			}
 			w0 += deltaW0Col
 			w1 += deltaW1Col
@@ -209,18 +209,20 @@ func (s *Scene) Render() {
 			s.RenderTriangle(o.mesh.vertsWorld, o.mesh.uv, t, o.mesh.texture)
 		}
 
-		for _, t := range o.mesh.tris {
-			// if !t.backFaceCulling(o.mesh.vertsWorld, o.mesh.normalsWorld) {
-			// 	continue
-			// }
+		if s.activeCam.renderWire {
+			for _, t := range o.mesh.tris {
+				// if !t.backFaceCulling(o.mesh.vertsWorld, o.mesh.normalsWorld) {
+				// 	continue
+				// }
 
-			if !s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v1]) ||
-				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v2]) ||
-				!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v3]) {
-				continue
+				if !s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v1]) ||
+					!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v2]) ||
+					!s.activeCam.frustum.IsVertexInsideFrustum(o.mesh.vertsWorld[t.v3]) {
+					continue
+				}
+
+				s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 			}
-
-			s.DrawWireframeTriangle(o.mesh.vertsWorld, t)
 		}
 		// break
 	}
