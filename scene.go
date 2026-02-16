@@ -75,6 +75,14 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 	vb := s.activeCam.ProjectVertexToNDC(verts[tri.v2])
 	vc := s.activeCam.ProjectVertexToNDC(verts[tri.v3])
 
+	depthA := 1 / verts[tri.v1].Z
+	depthB := 1 / verts[tri.v2].Z
+	depthC := 1 / verts[tri.v3].Z
+
+	uv1z := uv[tri.u1].Scale(depthA)
+	uv2z := uv[tri.u2].Scale(depthB)
+	uv3z := uv[tri.u3].Scale(depthC)
+
 	v0 := s.activeCam.NDCtoScreen(va)
 	v1 := s.activeCam.NDCtoScreen(vb)
 	v2 := s.activeCam.NDCtoScreen(vc)
@@ -145,11 +153,13 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 				beta := w2 * area
 				gama := w0 * area
 
-				uv1 := uv[tri.u1].Scale(alpha)
-				uv2 := uv[tri.u2].Scale(beta)
-				uv3 := uv[tri.u3].Scale(gama)
+				depth := depthA*alpha + depthB*beta + depthC*gama
 
-				uvCoord := uv1.Add(uv2).Add(uv3)
+				uv1 := uv1z.Scale(alpha)
+				uv2 := uv2z.Scale(beta)
+				uv3 := uv3z.Scale(gama)
+
+				uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
 
 				s.activeCam.PutPixel(uint(x), uint(y), t.TexelColor(uvCoord))
 			}
