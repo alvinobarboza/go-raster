@@ -35,7 +35,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint, cl color.RGBA) {
 		abY := float32(b.Y-a.Y) / float32(b.X-a.X)
 		ys := float32(a.Y)
 		for x := a.X; x <= b.X; x++ {
-			s.activeCam.PutPixel(uint(x), uint(ys), cl, 1)
+			s.activeCam.PutPixel(uint(x), uint(ys), cl, 100)
 			ys += abY
 		}
 		return
@@ -51,7 +51,7 @@ func (s *Scene) DrawLine(a, b ScreenPoint, cl color.RGBA) {
 	xs := float32(a.X)
 
 	for y := a.Y; y <= b.Y; y++ {
-		s.activeCam.PutPixel(uint(xs), uint(y), cl, 1)
+		s.activeCam.PutPixel(uint(xs), uint(y), cl, 100)
 		xs += abX
 	}
 }
