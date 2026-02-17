@@ -29,15 +29,8 @@ type Texture struct {
 }
 
 func (t *Texture) UVToWH(uv Vec3) (int, int) {
-	if uv.X > 1 {
-		iX := math.Trunc(float64(uv.X))
-		uv.X = uv.X - float32(iX)
-	}
-
-	if uv.Y > 1 {
-		iX := math.Trunc(float64(uv.Y))
-		uv.Y = uv.Y - float32(iX)
-	}
+	uv.X = uv.X - float32(math.Floor(float64(uv.X)))
+	uv.Y = uv.Y - float32(math.Floor(float64(uv.Y)))
 
 	w, h := uv.X*float32(t.width), uv.Y*float32(t.height)
 	return int(w), int(h)
@@ -45,12 +38,15 @@ func (t *Texture) UVToWH(uv Vec3) (int, int) {
 
 func (t *Texture) TexelColor(uv Vec3) color.RGBA {
 	w, h := t.UVToWH(uv)
-
 	i := h*t.width + w
 
 	if i >= len(t.pixels) {
 		i = len(t.pixels) - 1
 	}
+	if i < 0 {
+		i = 0
+	}
+
 	return t.pixels[i]
 }
 
