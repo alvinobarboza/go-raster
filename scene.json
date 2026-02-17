@@ -4,90 +4,103 @@
     "meshtexturepath": "./assets/polyhaven_rico_b3d/marble_bust.jpg",
     "position": { "x": -1.3, "y": 0.0, "z": 0.6 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/floor_ceiling_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/floor_1.png",
     "position": { "x": 0.0, "y": 0.0, "z": 1.0 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/utah-assets/utah_teapot.obj",
     "meshtexturepath": "./assets/default.jpg",
     "position": { "x": -1.0, "y": 0.0, "z": 1.0 },
     "scale": { "x": 0.111, "y": 0.125, "z": 0.125 },
-    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/ammo_box_1_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/ammo_mp_1.png",
     "position": { "x": -0.07, "y": 0.97, "z": 1.0 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -45.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -45.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/ammo_pistol_loose_5pcs_mp_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/ammo_mp_1.png",
     "position": { "x": 0.1, "y": 0.97, "z": 1.0 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/chair_mp_3.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/wood_3.png",
     "position": { "x": 0.0, "y": 0.0, "z": 0.5 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -200.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -200.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/flashlight_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/flashlight_1.png",
     "position": { "x": -0.6, "y": 0.97, "z": 1.3 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -160.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -160.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/matchbox_2.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/matchbox_1.png",
     "position": { "x": -0.6, "y": 0.97, "z": 0.64 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": 40.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 40.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/pc_keyboard_mp_3.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/pc_accessories_mp_1.png",
     "position": { "x": 0.5, "y": 0.97, "z": 0.9 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -20.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -20.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/pc_monitor_mp_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/pc_monitor_mp_1.png",
     "position": { "x": 0.6, "y": 0.97, "z": 1.2 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -30.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -30.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/pistol_mp_1_mag_empty.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/pistols_mp_1.png",
     "position": { "x": 0.24, "y": 0.99, "z": 0.7 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 90.0, "y": 90.0, "z": 0.0 }
+    "rotation": { "x": 90.0, "y": 90.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/table_large_2.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/wood_3.png",
     "position": { "x": 0.0, "y": 0.0, "z": 1.0 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "windingReorder": true
   },
   {
     "meshpath": "./assets/psx_pizza_doggy/vhs_tape_1.obj",
     "meshtexturepath": "./assets/psx_pizza_doggy/vhs_tape_1.png",
     "position": { "x": -0.05, "y": 0.97, "z": 1.24 },
     "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
-    "rotation": { "x": 0.0, "y": -62.0, "z": 0.0 }
+    "rotation": { "x": 0.0, "y": -62.0, "z": 0.0 },
+    "windingReorder": true
   }
 ]

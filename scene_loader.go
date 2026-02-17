@@ -7,11 +7,13 @@ import (
 )
 
 type ModelData struct {
-	MeshPath    string   `json:"meshpath"`
-	TexturePath string   `json:"meshtexturepath"`
-	Position    Vec3Data `json:"position"`
-	Scale       Vec3Data `json:"scale"`
-	Rotation    Vec3Data `json:"rotation"`
+	MeshPath       string   `json:"meshpath"`
+	TexturePath    string   `json:"meshtexturepath"`
+	Position       Vec3Data `json:"position"`
+	Scale          Vec3Data `json:"scale"`
+	Rotation       Vec3Data `json:"rotation"`
+	FlipNormals    bool     `json:"flipNormals"`
+	WindingReorder bool     `json:"windingReorder"`
 }
 
 type Vec3Data struct {
@@ -34,7 +36,7 @@ func LoadSceneFromJSON(filePath string) ([]Model, error) {
 	var models []Model
 
 	for _, m := range modelsData {
-		mesh, err := LoadMeshFromFile(m.MeshPath, m.TexturePath)
+		mesh, err := LoadMeshFromFile(m.MeshPath, m.TexturePath, m.WindingReorder, m.FlipNormals)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load asset %s: %w", m.MeshPath, err)
 		}

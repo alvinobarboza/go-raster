@@ -40,7 +40,6 @@ func main() {
 
 	scene := NewScene(&camera)
 
-	//TODO: fix loading real model data
 	models, err := LoadSceneFromJSON("./scene.json")
 	if err != nil {
 		panic(err)

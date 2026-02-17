@@ -22,7 +22,7 @@ func LoadVec3(line string, indices int) (float32, float32, float32) {
 		result[i] = float32(d)
 	}
 
-	return result[0], result[1], result[2]
+	return result[0], result[1], -result[2]
 }
 
 func loadTriangleMetaData(indexes string) (int, int, int) {
@@ -73,7 +73,7 @@ func LoadTriangle(line string) []Triangle {
 	return tris
 }
 
-func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
+func LoadMeshFromFile(modelPath string, texturePath string, windingReorder, flipNormals bool) (MeshData, error) {
 	file, err := os.Open(modelPath)
 	if err != nil {
 		log.Println(err)
@@ -106,6 +106,11 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 				verts = append(verts, NewVec3(x, y, z))
 			case "vn":
 				x, y, z := LoadVec3(line, 3)
+				if flipNormals {
+					x = -x
+					y = -y
+					z = -z
+				}
 				normals = append(normals, NewVec3(x, y, z))
 			case "vt":
 				x, y, _ := LoadVec3(line, 2)
@@ -135,7 +140,20 @@ func LoadMeshFromFile(modelPath string, texturePath string) (MeshData, error) {
 	g /= len(texture.pixels)
 	b /= len(texture.pixels)
 
+	var tempV, tempUV, tempN int
 	for i := range len(tris) {
+		if windingReorder {
+			tempV = tris[i].v1
+			tempUV = tris[i].u1
+			tempN = tris[i].n1
+			tris[i].v1 = tris[i].v3
+			tris[i].u1 = tris[i].u3
+			tris[i].n1 = tris[i].n3
+			tris[i].v3 = tempV
+			tris[i].u3 = tempUV
+			tris[i].n3 = tempN
+		}
+
 		tris[i].color = color.RGBA{
 			A: 255,
 			R: uint8(r),
