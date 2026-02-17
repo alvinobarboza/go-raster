@@ -155,13 +155,19 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 
 				depth := depthA*alpha + depthB*beta + depthC*gama
 
+				xx, yy := uint(x), uint(y)
+				if !s.activeCam.DepthPass(xx, yy, depth) {
+					continue
+				}
+
 				uv1 := uv1z.Scale(alpha)
 				uv2 := uv2z.Scale(beta)
 				uv3 := uv3z.Scale(gama)
 
 				uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
+				pColor := t.TexelColor(uvCoord)
 
-				s.activeCam.PutPixel(uint(x), uint(y), t.TexelColor(uvCoord), depth)
+				s.activeCam.PutPixel(xx, yy, pColor, depth)
 			}
 			w0 += deltaW0Col
 			w1 += deltaW1Col

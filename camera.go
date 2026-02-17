@@ -160,16 +160,20 @@ func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
 	}
 }
 
-func (c *Camera) PutPixel(x, y uint, cl color.RGBA, depth float32) {
+func (c *Camera) DepthPass(x, y uint, depth float32) bool {
 	if x >= c.width || y >= c.height {
-		return
+		return false
 	}
 	i := y*c.width + x
-
 	if c.depthBuffer[i] > depth {
-		return
+		return false
 	}
 	c.depthBuffer[i] = depth
+	return true
+}
+
+func (c *Camera) PutPixel(x, y uint, cl color.RGBA, depth float32) {
+	i := y*c.width + x
 
 	if c.renderDepth {
 		c.canvas[i].A = 255
