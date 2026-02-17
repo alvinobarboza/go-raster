@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func LoadVec3(line string, indices int) (float32, float32, float32) {
+func LoadVec3(line string, indices int, zNegative bool) (float32, float32, float32) {
 	var result [3]float32
 
 	line = strings.Replace(line, "\n", "", 1)
@@ -22,7 +22,11 @@ func LoadVec3(line string, indices int) (float32, float32, float32) {
 		result[i] = float32(d)
 	}
 
-	return result[0], result[1], -result[2]
+	if zNegative {
+		result[2] = -result[2]
+	}
+
+	return result[0], result[1], result[2]
 }
 
 func loadTriangleMetaData(indexes string) (int, int, int) {
@@ -73,7 +77,7 @@ func LoadTriangle(line string) []Triangle {
 	return tris
 }
 
-func LoadMeshFromFile(modelPath string, texturePath string, windingReorder, flipNormals bool) (MeshData, error) {
+func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingReorder, flipNormals bool) (MeshData, error) {
 	file, err := os.Open(modelPath)
 	if err != nil {
 		log.Println(err)
@@ -102,10 +106,10 @@ func LoadMeshFromFile(modelPath string, texturePath string, windingReorder, flip
 		if len(line) > 2 {
 			switch line[:2] {
 			case "v ":
-				x, y, z := LoadVec3(line, 3)
+				x, y, z := LoadVec3(line, 3, zNegative)
 				verts = append(verts, NewVec3(x, y, z))
 			case "vn":
-				x, y, z := LoadVec3(line, 3)
+				x, y, z := LoadVec3(line, 3, zNegative)
 				if flipNormals {
 					x = -x
 					y = -y
@@ -113,7 +117,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, windingReorder, flip
 				}
 				normals = append(normals, NewVec3(x, y, z))
 			case "vt":
-				x, y, _ := LoadVec3(line, 2)
+				x, y, _ := LoadVec3(line, 2, zNegative)
 				uvs = append(uvs, NewVec3(x, y, 0))
 			case "f ":
 				t := LoadTriangle(line)

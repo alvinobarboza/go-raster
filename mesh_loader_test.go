@@ -10,7 +10,7 @@ func TestMeshLoader(t *testing.T) {
 
 		want := NewVec3(1, 1, 1)
 
-		x, y, z := LoadVec3(lineToParse, 3)
+		x, y, z := LoadVec3(lineToParse, 3, true)
 		got := NewVec3(x, y, z)
 
 		if want.X != got.X &&
@@ -25,7 +25,7 @@ func TestMeshLoader(t *testing.T) {
 
 		want := NewVec3(1, 1, 0)
 
-		x, y, z := LoadVec3(lineToParse, 3)
+		x, y, z := LoadVec3(lineToParse, 3, true)
 		got := NewVec3(x, y, z)
 
 		if want.X != got.X &&
