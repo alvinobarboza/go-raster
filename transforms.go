@@ -221,6 +221,7 @@ func (t *Transforms) UpdateTransforms(transposeRot bool, invertPosition bool) {
 		t.rotationMat = t.rotationMat.Transposed()
 	}
 
+	// TODO: Fix multiply order
 	t.matrixTransforms = t.rotationMat.MultiplyByMatrix(t.scaleMat)
 	t.matrixTransforms = t.matrixTransforms.MultiplyByMatrix(t.translationMat)
 }

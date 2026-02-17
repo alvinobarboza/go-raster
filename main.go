@@ -34,7 +34,7 @@ func main() {
 		NearPlane,
 		FarPlane,
 		fov,
-		NewVec3(0, 0.03, -4),
+		NewVec3(0, 0, -0.5),
 		NewVec3(0, 0, 0),
 	)
 
@@ -45,8 +45,8 @@ func main() {
 		panic(err)
 	}
 
-	for _, m := range models {
-		scene.AddMesh(&m)
+	for i := range models {
+		scene.AddMesh(&models[i])
 	}
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
@@ -93,28 +93,46 @@ func main() {
 		leftRightCam = 0
 		upDownCam = 0
 
+		if rl.IsKeyDown(rl.KeyQ) {
+			models[0].transforms.scale = models[0].transforms.scale.Scale(0.9)
+			models[0].UpdateTransforms()
+			fmt.Println("scale down", models[0].transforms.scale)
+		}
+
+		if rl.IsKeyDown(rl.KeyR) {
+			models[0].transforms.rotation.Y += .5
+			models[0].UpdateTransforms()
+			fmt.Println("rotate", models[0].transforms.rotation)
+		}
+
+		if rl.IsKeyDown(rl.KeyE) {
+			models[0].transforms.scale = models[0].transforms.scale.Scale(1.1)
+			models[0].UpdateTransforms()
+			fmt.Println("scale up", models[0].transforms.scale)
+		}
+
 		if rl.IsKeyDown(rl.KeyW) {
-			backForwardCam = .1
+			backForwardCam = .02
 		}
 
 		if rl.IsKeyDown(rl.KeyS) {
-			backForwardCam = -.1
+			backForwardCam = -.02
 		}
 
 		if rl.IsKeyDown(rl.KeyA) {
-			leftRightCam = .1
+			leftRightCam = .02
 		}
 
 		if rl.IsKeyDown(rl.KeyD) {
-			leftRightCam = -.1
+			leftRightCam = -.02
 		}
 
 		if rl.IsKeyDown(rl.KeySpace) {
-			upDownCam = .1
+			upDownCam = .02
 		}
 
 		if rl.IsKeyDown(rl.KeyLeftControl) {
-			upDownCam = -.1
+			upDownCam = -.02
 		}
 
 		if rl.IsKeyPressed(rl.KeyZ) {
@@ -126,7 +144,7 @@ func main() {
 		}
 
 		mouseDelta := rl.GetMouseDelta()
-		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime(), mouseDelta.Y*rl.GetFrameTime())
+		camera.UpdateRotation(mouseDelta.X*rl.GetFrameTime()*0.4, mouseDelta.Y*rl.GetFrameTime()*0.4)
 
 		if backForwardCam != 0 || leftRightCam != 0 || upDownCam != 0 {
 			camera.MoveBackForwad(backForwardCam)
