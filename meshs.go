@@ -87,9 +87,11 @@ func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
 	width, height := bounds.Max.X, bounds.Max.Y
 
 	pixels := make([]color.RGBA, 0)
+	// Upside down, since render is upside down
 	for y := range height {
+		yu := height - y - 1
 		for x := range width {
-			r, g, b, a := img.At(x, y).RGBA()
+			r, g, b, a := img.At(x, yu).RGBA()
 
 			// From alpha pre-multiplied values
 			// 0xFF00 > 0x00FF > 0xFF
