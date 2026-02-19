@@ -117,7 +117,7 @@ func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot V
 		},
 	}
 
-	c.transforms.UpdateTransforms(true, true)
+	c.transforms.UpdateCameraTransforms()
 	c.UpdateCanvasSize(w, h)
 	return c
 }
@@ -198,7 +198,7 @@ func (c *Camera) MoveBackForwad(unit float32) {
 
 	c.transforms.position = c.transforms.position.Add(normalDirection.Scale(unit))
 
-	c.transforms.UpdateTransforms(true, true)
+	c.transforms.UpdateCameraTransforms()
 }
 
 func (c *Camera) MoveSideways(unit float32) {
@@ -214,7 +214,7 @@ func (c *Camera) MoveSideways(unit float32) {
 
 	c.transforms.position = c.transforms.position.Add(normalDirection.Scale(unit))
 
-	c.transforms.UpdateTransforms(true, true)
+	c.transforms.UpdateCameraTransforms()
 }
 
 func (c *Camera) UpdateRotation(x float32, y float32) {
@@ -237,7 +237,7 @@ func (c *Camera) UpdateRotation(x float32, y float32) {
 		c.transforms.rotation.X = -89
 	}
 
-	c.transforms.UpdateTransforms(true, true)
+	c.transforms.UpdateCameraTransforms()
 }
 
 func (c *Camera) ToggleViewLock() {
@@ -254,7 +254,7 @@ func (c *Camera) ToggleWireRender() {
 
 func (c *Camera) MoveVetically(unit float32) {
 	c.transforms.position.Y += unit
-	c.transforms.UpdateTransforms(true, true)
+	c.transforms.UpdateCameraTransforms()
 }
 
 func (c *Camera) CalculateFrustum() {

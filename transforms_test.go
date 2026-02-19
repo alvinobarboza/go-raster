@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math"
 	"testing"
 )
@@ -198,4 +199,162 @@ func TestTransposeMat(t *testing.T) {
 	if !incorrect {
 		t.Errorf("Want %v, got %v", want, got)
 	}
+}
+
+func IsEqualMatrix(mat1, mat2 Matrix) bool {
+
+	for i := range M4x4 {
+		if mat1[i] != mat2[i] {
+			log.Println(mat1[i], mat2[i])
+			return false
+		}
+	}
+
+	return true
+}
+
+func TestMatrices(t *testing.T) {
+
+	t.Run("scale matrix", func(t *testing.T) {
+		want := Matrix{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		}
+
+		got := NewScaleMatrix(NewVec3(1, 1, 1))
+
+		if !IsEqualMatrix(want, got) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			got.Print("Got")
+		}
+	})
+
+	t.Run("rotation matrix", func(t *testing.T) {
+		want := Matrix{
+			-0.00000004371138828674, +0.00, -1.00, +0.00,
+			+0.00, +1.00, +0.00, +0.00,
+			+1.00, +0.00, -0.00000004371138828674, +0.00,
+			+0.00, +0.00, +0.00, +1.00,
+		}
+
+		got := NewRotationMatrix(NewVec3(0, 90, 0))
+
+		if !IsEqualMatrix(want, got) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			got.Print("Got")
+		}
+	})
+
+	t.Run("translation matrix", func(t *testing.T) {
+		want := Matrix{
+			+1.00, +0.00, +0.00, +1.00,
+			+0.00, +1.00, +0.00, +1.00,
+			+0.00, +0.00, +1.00, +0.00,
+			+0.00, +0.00, +0.00, +1.00,
+		}
+
+		got := NewTranslationMatrix(NewVec3(1, 1, 0))
+
+		if !IsEqualMatrix(want, got) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			got.Print("Got")
+		}
+	})
+
+	t.Run("mat x mat", func(t *testing.T) {
+		mat := Matrix{
+			2, 2, 2, 2,
+			2, 2, 2, 2,
+			2, 2, 2, 2,
+			2, 2, 2, 2,
+		}
+
+		want := Matrix{
+			16, 16, 16, 16,
+			16, 16, 16, 16,
+			16, 16, 16, 16,
+			16, 16, 16, 16,
+		}
+
+		got := mat.MultiplyByMatrix(mat)
+
+		if !IsEqualMatrix(got, want) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			got.Print("Got")
+		}
+	})
+
+	t.Run("matrices multiplication order", func(t *testing.T) {
+		scale := Matrix{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		}
+
+		rotation := Matrix{
+			2, 3, 4, 1,
+			3, 2, 3, 2,
+			2, 3, 4, 1,
+			3, 2, 3, 2,
+		}
+
+		translation := Matrix{
+			1, 0, 0, 2,
+			0, 1, 0, 4,
+			0, 0, 1, 5,
+			0, 0, 0, 1,
+		}
+
+		result := rotation.MultiplyByMatrix(scale)
+		got := translation.MultiplyByMatrix(result)
+
+		want := Matrix{
+			+8.00, +7.00, +10.00, +5.00,
+			+15.00, +10.00, +15.00, +10.00,
+			+17.00, +13.00, +19.00, +11.00,
+			+3.00, +2.00, +3.00, +2.00,
+		}
+
+		if !IsEqualMatrix(want, got) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			got.Print("Got")
+		}
+	})
+
+	t.Run("calculate corret matrices", func(t *testing.T) {
+		want := Matrix{
+			-0.00000004371138828674, +0.00, -1.00, +1.00,
+			+0.00, +1.00, +0.00, +1.00,
+			+1.00, +0.00, -0.00000004371138828674, +0.00,
+			+0.00, +0.00, +0.00, +1.00,
+		}
+
+		transform := Transforms{
+			scale:    NewVec3(1, 1, 1),
+			rotation: NewVec3(0, 90, 0),
+			position: NewVec3(1, 1, 0),
+		}
+
+		transform.UpdateModelTransforms()
+
+		if !IsEqualMatrix(want, transform.matrixTransforms) {
+			t.Errorf("want")
+			want.Print("Want")
+			t.Error("got")
+			transform.matrixTransforms.Print("Got")
+		}
+	})
 }

@@ -206,23 +206,21 @@ func NewTransforms(pos, scale, rot Vec3) Transforms {
 	}
 }
 
-func (t *Transforms) UpdateTransforms(transposeRot bool, invertPosition bool) {
+func (t *Transforms) UpdateModelTransforms() {
 	t.rotationMat = NewRotationMatrix(t.rotation)
 	t.scaleMat = NewScaleMatrix(t.scale)
-	pos := t.position
+	t.translationMat = NewTranslationMatrix(t.position)
 
-	if invertPosition {
-		pos = t.position.Scale(-1)
-	}
-
-	t.translationMat = NewTranslationMatrix(pos)
-
-	if transposeRot {
-		t.rotationMat = t.rotationMat.Transposed()
-	}
-
-	// TODO: Fix multiply order
 	t.matrixTransforms = t.rotationMat.MultiplyByMatrix(t.scaleMat)
+	t.matrixTransforms = t.translationMat.MultiplyByMatrix(t.matrixTransforms)
+}
+
+func (t *Transforms) UpdateCameraTransforms() {
+	t.rotationMat = NewRotationMatrix(t.rotation).Transposed()
+	t.scaleMat = NewScaleMatrix(t.scale)
+	t.translationMat = NewTranslationMatrix(t.position.Scale(-1))
+
+	t.matrixTransforms = t.scaleMat.MultiplyByMatrix(t.rotationMat)
 	t.matrixTransforms = t.matrixTransforms.MultiplyByMatrix(t.translationMat)
 }
 
