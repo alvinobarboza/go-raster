@@ -94,21 +94,37 @@ func main() {
 		upDownCam = 0
 
 		if rl.IsKeyDown(rl.KeyQ) {
-			models[0].transforms.scale = models[0].transforms.scale.Scale(0.9)
-			models[0].UpdateTransforms()
-			fmt.Println("scale down", models[0].transforms.scale)
+			models[1].transforms.scale = models[1].transforms.scale.Scale(0.99)
+			models[1].UpdateTransforms()
+			models[1].transforms.scale.Print("scale down")
 		}
 
 		if rl.IsKeyDown(rl.KeyR) {
-			models[0].transforms.rotation.Y += .5
-			models[0].UpdateTransforms()
-			fmt.Println("rotate", models[0].transforms.rotation)
+			if rl.IsKeyDown(rl.KeyLeftShift) {
+				models[1].transforms.rotation.Y -= .5
+			} else {
+				models[1].transforms.rotation.Y += .5
+			}
+			models[1].UpdateTransforms()
+			models[1].transforms.rotation.Print("rotate")
 		}
 
 		if rl.IsKeyDown(rl.KeyE) {
-			models[0].transforms.scale = models[0].transforms.scale.Scale(1.1)
-			models[0].UpdateTransforms()
-			fmt.Println("scale up", models[0].transforms.scale)
+			models[1].transforms.scale = models[1].transforms.scale.Scale(1.01)
+			models[1].UpdateTransforms()
+			models[1].transforms.scale.Print("scale up")
+		}
+
+		if rl.IsKeyDown(rl.KeyLeft) {
+			models[1].transforms.position.X -= 0.01
+			models[1].UpdateTransforms()
+			models[1].transforms.position.Print("position")
+		}
+
+		if rl.IsKeyDown(rl.KeyRight) {
+			models[1].transforms.position.X += 0.01
+			models[1].UpdateTransforms()
+			models[1].transforms.position.Print("position")
 		}
 
 		if rl.IsKeyDown(rl.KeyW) {
