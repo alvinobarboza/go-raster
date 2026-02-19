@@ -156,18 +156,16 @@ func (s *Scene) RenderTriangle(verts, uv []Vec3, tri Triangle, t *Texture) {
 				depth := depthA*alpha + depthB*beta + depthC*gama
 
 				xx, yy := uint(x), uint(y)
-				if !s.activeCam.DepthPass(xx, yy, depth) {
-					continue
+				if s.activeCam.DepthPass(xx, yy, depth) {
+					uv1 := uv1z.Scale(alpha)
+					uv2 := uv2z.Scale(beta)
+					uv3 := uv3z.Scale(gama)
+
+					uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
+					pColor := t.TexelColor(uvCoord)
+
+					s.activeCam.PutPixel(xx, yy, pColor, depth)
 				}
-
-				uv1 := uv1z.Scale(alpha)
-				uv2 := uv2z.Scale(beta)
-				uv3 := uv3z.Scale(gama)
-
-				uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
-				pColor := t.TexelColor(uvCoord)
-
-				s.activeCam.PutPixel(xx, yy, pColor, depth)
 			}
 			w0 += deltaW0Col
 			w1 += deltaW1Col
@@ -190,6 +188,7 @@ func (s *Scene) Render() {
 			continue
 		}
 
+		// TODO: generate new tris on frustum plane intersections
 		for _, t := range o.mesh.tris {
 			o.mesh.vertsWorld[t.v1] = matTransform.MultiplyByVec3(o.mesh.verts[t.v1])
 			o.mesh.vertsWorld[t.v2] = matTransform.MultiplyByVec3(o.mesh.verts[t.v2])
@@ -198,10 +197,7 @@ func (s *Scene) Render() {
 			o.mesh.normalsWorld[t.n1] = matRoation.MultiplyByVec3(o.mesh.normals[t.n1])
 			o.mesh.normalsWorld[t.n2] = matRoation.MultiplyByVec3(o.mesh.normals[t.n2])
 			o.mesh.normalsWorld[t.n3] = matRoation.MultiplyByVec3(o.mesh.normals[t.n3])
-		}
 
-		// TODO: generate new tris on frustum plane intersections
-		for _, t := range o.mesh.tris {
 			if !t.backFaceCulling(o.mesh.vertsWorld, o.mesh.normalsWorld) {
 				continue
 			}
