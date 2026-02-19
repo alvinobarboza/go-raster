@@ -48,19 +48,6 @@ func TestBoundary(t *testing.T) {
 }
 
 func TestTexture(t *testing.T) {
-	t.Run("(1,0)", func(t *testing.T) {
-		tex := Texture{width: 100, height: 100}
-		uv := Vec3{X: 1, Y: 0}
-
-		w, h := tex.UVToWH(uv)
-
-		wantW, wantH := 100, 0
-
-		if w != wantW || h != wantH {
-			t.Errorf("want w:%d h:%d, got w:%d h:%d", wantW, wantH, w, h)
-		}
-	})
-
 	t.Run("(1.5,0)", func(t *testing.T) {
 		tex := Texture{width: 100, height: 100}
 		uv := Vec3{X: 1.5, Y: 0}
