@@ -34,8 +34,8 @@ func main() {
 		NearPlane,
 		FarPlane,
 		fov,
-		NewVec3(0, 0, -0.5),
-		NewVec3(0, 0, 0),
+		NewVec3(0, 2, -0.7),
+		NewVec3(-30, 0, 0),
 	)
 
 	scene := NewScene(&camera)

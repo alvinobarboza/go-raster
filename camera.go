@@ -136,7 +136,7 @@ func (c *Camera) UpdateCanvasSize(w, h uint) {
 
 func (c *Camera) ClearCanvas() {
 	for i := range len(c.canvas) {
-		c.canvas[i] = Gray
+		c.canvas[i] = DarkGray
 		c.depthBuffer[i] = 0
 	}
 }
