@@ -3,10 +3,12 @@ package main
 import (
 	"image/color"
 	"math"
+	"sync"
 )
 
 type Renderer struct {
 	scene      *Scene
+	wg         sync.WaitGroup
 	outputList []ClippedVertex
 	inputList  []ClippedVertex
 }
@@ -127,29 +129,30 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 ClippedVertex, t *Texture)
 	w1Row := EdgeCross(v1, v2, p) + bias1
 	w2Row := EdgeCross(v2, v0, p) + bias2
 
+	/*
+			  v0 (Top)
+			  /\
+			 /  \
+			/    \    <-- The distance from this edge (v0-v1)
+		   /      \       towards v2 is w0.
+		  /   P    \
+		 /    |     \
+		v1 ---|------v2
+			  ^
+			  |
+		The distance from this edge (v1-v2)
+		towards v0 is w1.
+		w1 = v1 -> v2 distance to v0 = a = tri.v1
+		w2 = v2 -> v0 distance to v1 = b = tri.v2
+		w0 = v0 -> v1 distance to v2 = c = tri.v3
+	*/
 	for y := minY; y <= maxY; y++ {
 		w0 := w0Row
 		w1 := w1Row
 		w2 := w2Row
+
 		for x := minX; x <= maxX; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-				/*
-					      v0 (Top)
-					      /\
-					     /  \
-					    /    \    <-- The distance from this edge (v0-v1)
-					   /      \       towards v2 is w0.
-					  /   P    \
-					 /    |     \
-					v1 ---|------v2
-					      ^
-					      |
-					The distance from this edge (v1-v2)
-					towards v0 is w1.
-					w1 = v1 -> v2 distance to v0 = a = tri.v1
-					w2 = v2 -> v0 distance to v1 = b = tri.v2
-					w0 = v0 -> v1 distance to v2 = c = tri.v3
-				*/
 				alpha := w1 * area
 				beta := w2 * area
 				gama := w0 * area
@@ -172,6 +175,7 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 ClippedVertex, t *Texture)
 			w1 += deltaW1Col
 			w2 += deltaW2Col
 		}
+
 		w0Row += deltaW0Row
 		w1Row += deltaW1Row
 		w2Row += deltaW2Row
