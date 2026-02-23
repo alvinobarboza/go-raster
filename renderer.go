@@ -8,15 +8,17 @@ import (
 
 type Renderer struct {
 	scene      *Scene
+	wp         *WorkerPool
 	wg         sync.WaitGroup
 	outputList []ClippedVertex
 	inputList  []ClippedVertex
 }
 
-func NewRenderer() Renderer {
-	return Renderer{
+func NewRenderer(wp *WorkerPool) *Renderer {
+	return &Renderer{
 		outputList: make([]ClippedVertex, 9),
 		inputList:  make([]ClippedVertex, 9),
+		wp:         wp,
 	}
 }
 

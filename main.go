@@ -38,10 +38,12 @@ func main() {
 		NewVec3(-30, 0, 0),
 	)
 
-	scene := NewScene(&camera)
-	renderer := NewRenderer()
+	scene := NewScene(camera)
 
-	renderer.AddActiveScene(&scene)
+	wp := NewWorkerPool(4)
+	renderer := NewRenderer(wp)
+
+	renderer.AddActiveScene(scene)
 
 	models, err := LoadSceneFromJSON("./scene.json")
 	if err != nil {
