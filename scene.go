@@ -5,8 +5,8 @@ type Scene struct {
 	objects   []*Model
 }
 
-func NewScene(c *Camera) Scene {
-	return Scene{
+func NewScene(c *Camera) *Scene {
+	return &Scene{
 		activeCam: c,
 		objects:   make([]*Model, 0),
 	}

@@ -95,7 +95,7 @@ type Camera struct {
 	frustum Frustum
 }
 
-func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot Vec3) Camera {
+func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot Vec3) *Camera {
 	c := Camera{
 		fovAngle:    fovAngle,
 		fovScaling:  FovScaling(fovAngle),
@@ -115,7 +115,7 @@ func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot V
 
 	c.transforms.UpdateCameraTransforms()
 	c.UpdateCanvasSize(w, h)
-	return c
+	return &c
 }
 
 func (c *Camera) UpdateCanvasSize(w, h uint) {
