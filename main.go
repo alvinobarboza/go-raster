@@ -39,6 +39,9 @@ func main() {
 	)
 
 	scene := NewScene(&camera)
+	renderer := NewRenderer()
+
+	renderer.AddActiveScene(&scene)
 
 	models, err := LoadSceneFromJSON("./scene.json")
 	if err != nil {
@@ -48,6 +51,10 @@ func main() {
 	for i := range models {
 		scene.AddMesh(&models[i])
 	}
+
+	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))
+	// triangle.mesh.texture = LoadDefaultTexture()
+	// scene.AddMesh(&triangle)
 
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 
@@ -168,7 +175,7 @@ func main() {
 			camera.MoveVetically(upDownCam)
 		}
 
-		scene.Render()
+		renderer.Render()
 
 		rl.UpdateTexture(renderTexture, scene.activeCam.canvas)
 

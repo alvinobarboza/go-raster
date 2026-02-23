@@ -23,6 +23,12 @@ func (t *Triangle) backFaceCulling(verts, normals []Vec3) bool {
 	return angleA >= 0 || angleB >= 0 || angleC >= 0
 }
 
+type ClippedVertex struct {
+	v Vec3
+	n Vec3
+	u Vec3
+}
+
 type Texture struct {
 	width, height int
 	pixels        []color.RGBA
