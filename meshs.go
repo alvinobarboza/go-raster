@@ -34,10 +34,11 @@ type Texture struct {
 }
 
 func (t *Texture) TexelColor(uv Vec2) color.RGBA {
-	uv.X = uv.X - Floor32(uv.X)
-	uv.Y = uv.Y - Floor32(uv.Y)
+	u := uv.X - Floor32(uv.X)
+	v := uv.Y - Floor32(uv.Y)
 
-	w, h := int(uv.X*float32(t.width)), int(uv.Y*float32(t.height))
+	w := int(u * float32(t.width))
+	h := int(v * float32(t.height))
 
 	i := h*t.width + w
 
