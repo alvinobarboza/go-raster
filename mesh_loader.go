@@ -88,7 +88,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 	scanner := bufio.NewReader(file)
 	verts := make([]Vec3, 0)
 	normals := make([]Vec3, 0)
-	uvs := make([]Vec3, 0)
+	uvs := make([]Vec2, 0)
 	tris := make([]Triangle, 0)
 
 	for {
@@ -118,7 +118,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 				normals = append(normals, NewVec3(x, y, z))
 			case "vt":
 				x, y, _ := LoadVec3(line, 2, zNegative)
-				uvs = append(uvs, NewVec3(x, y, 0))
+				uvs = append(uvs, NewVec2(x, y))
 			case "f ":
 				t := LoadTriangle(line)
 				tris = append(tris, t...)

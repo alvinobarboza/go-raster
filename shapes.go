@@ -69,10 +69,10 @@ func NewCube(pos, scale, rotation Vec3) Model {
 }
 
 func NewTriangle(pos, scale, rotation Vec3) Model {
-	uv_verts := []Vec3{
-		{X: 0, Y: 0, Z: 0}, // 0 front bottom left
-		{X: 0, Y: 1, Z: 0}, // 1 front top left
-		{X: 1, Y: 1, Z: 0}, // 2 front top right
+	uv_verts := []Vec2{
+		{X: 0, Y: 0}, // 0 front bottom left
+		{X: 0, Y: 1}, // 1 front top left
+		{X: 1, Y: 1}, // 2 front top right
 	}
 	tris_verts := []Vec3{
 		{X: -1, Y: -1, Z: 0}, // 0 front bottom left

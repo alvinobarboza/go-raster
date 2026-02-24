@@ -92,8 +92,8 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 ClippedVertex, t *Texture)
 	v1 := r.scene.activeCam.NDCtoScreen(vb)
 	v2 := r.scene.activeCam.NDCtoScreen(vc)
 
-	minX := float32(math.Floor(float64(Minf(v0.X, Minf(v1.X, v2.X)))))
-	minY := float32(math.Floor(float64(Minf(v0.Y, Minf(v1.Y, v2.Y)))))
+	minX := Floor32(Minf(v0.X, Minf(v1.X, v2.X)))
+	minY := Floor32(Minf(v0.Y, Minf(v1.Y, v2.Y)))
 	maxX := float32(math.Ceil(float64(Maxf(v0.X, Maxf(v1.X, v2.X)))))
 	maxY := float32(math.Ceil(float64(Maxf(v0.Y, Maxf(v1.Y, v2.Y)))))
 

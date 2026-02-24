@@ -6,7 +6,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
-	"math"
 )
 
 type Triangle struct {
@@ -26,7 +25,7 @@ func (t *Triangle) backFaceCulling(verts, normals []Vec3) bool {
 type ClippedVertex struct {
 	v Vec3
 	n Vec3
-	u Vec3
+	u Vec2
 }
 
 type Texture struct {
@@ -34,37 +33,30 @@ type Texture struct {
 	pixels        []color.RGBA
 }
 
-func (t *Texture) UVToWH(uv Vec3) (int, int) {
-	uv.X = uv.X - float32(math.Floor(float64(uv.X)))
-	uv.Y = uv.Y - float32(math.Floor(float64(uv.Y)))
+func (t *Texture) TexelColor(uv Vec2) color.RGBA {
+	uv.X = uv.X - Floor32(uv.X)
+	uv.Y = uv.Y - Floor32(uv.Y)
 
-	w, h := uv.X*float32(t.width), uv.Y*float32(t.height)
-	return int(w), int(h)
-}
+	w, h := int(uv.X*float32(t.width)), int(uv.Y*float32(t.height))
 
-func (t *Texture) TexelColor(uv Vec3) color.RGBA {
-	w, h := t.UVToWH(uv)
 	i := h*t.width + w
 
-	if i >= len(t.pixels) {
-		i = len(t.pixels) - 1
-	}
-	if i < 0 {
-		i = 0
+	if uint(i) < uint(len(t.pixels)) {
+		return t.pixels[i]
 	}
 
-	return t.pixels[i]
+	return t.pixels[0]
 }
 
 type MeshData struct {
 	tris                  []Triangle
 	verts, vertsWorld     []Vec3
 	normals, normalsWorld []Vec3
-	uv                    []Vec3
+	uv                    []Vec2
 	texture               *Texture
 }
 
-func NewMesh(verts, normals, uvs []Vec3, tris []Triangle, texture *Texture) MeshData {
+func NewMesh(verts, normals []Vec3, uvs []Vec2, tris []Triangle, texture *Texture) MeshData {
 	vertsWord := make([]Vec3, len(verts))
 	normalsWord := make([]Vec3, len(normals))
 	return MeshData{
