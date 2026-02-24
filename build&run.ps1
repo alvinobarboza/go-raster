@@ -1,1 +1,1 @@
-go build -o dist/raster.exe .; ./dist/raster.exe
+go build -o dist/raster.exe ./cmd/raylib ; ./dist/raster.exe

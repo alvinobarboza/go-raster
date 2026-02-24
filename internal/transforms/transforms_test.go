@@ -1,4 +1,4 @@
-package main
+package transforms
 
 import (
 	"log"
@@ -343,18 +343,18 @@ func TestMatrices(t *testing.T) {
 		}
 
 		transform := Transforms{
-			scale:    NewVec3(1, 1, 1),
-			rotation: NewVec3(0, 90, 0),
-			position: NewVec3(1, 1, 0),
+			Scale:    NewVec3(1, 1, 1),
+			Rotation: NewVec3(0, 90, 0),
+			Position: NewVec3(1, 1, 0),
 		}
 
 		transform.UpdateModelTransforms()
 
-		if !IsEqualMatrix(want, transform.matrixTransforms) {
+		if !IsEqualMatrix(want, transform.MatrixTransforms) {
 			t.Errorf("want")
 			want.Print("Want")
 			t.Error("got")
-			transform.matrixTransforms.Print("Got")
+			transform.MatrixTransforms.Print("Got")
 		}
 	})
 }

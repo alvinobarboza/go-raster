@@ -1,9 +1,12 @@
-package main
+package mesh
 
 import (
 	"math"
 	"math/rand/v2"
 	"testing"
+
+	"github.com/alvinobarboza/go-raster/internal/maths"
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
 func BenchmarkWrap(b *testing.B) {
@@ -32,16 +35,16 @@ func BenchmarkWrap(b *testing.B) {
 }
 
 func TestBoundary(t *testing.T) {
-	verts := []Vec3{
-		NewVec3(1, 0, 0),
-		NewVec3(-1, 0, 0),
+	verts := []transforms.Vec3{
+		transforms.NewVec3(1, 0, 0),
+		transforms.NewVec3(-1, 0, 0),
 	}
 
 	bounds := NewBoundingSphere()
 
-	bounds.CalculateBoundaries(verts, NewIdentityMatrix())
+	bounds.CalculateBoundaries(verts, transforms.NewIdentityMatrix())
 
-	if bounds.radius != 1 {
+	if bounds.Radius != 1 {
 		t.Errorf("Expercted r=1, got %+v", bounds)
 	}
 }
@@ -59,7 +62,7 @@ func BenchmarkFloor(b *testing.B) {
 	b.Run("custFloor", func(b *testing.B) {
 		sum := float32(0)
 		for b.Loop() {
-			sum += Floor32(x)
+			sum += maths.Floor32(x)
 		}
 	})
 }

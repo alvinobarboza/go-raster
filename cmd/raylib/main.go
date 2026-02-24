@@ -6,6 +6,11 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
+	"github.com/alvinobarboza/go-raster/internal/camera"
+	"github.com/alvinobarboza/go-raster/internal/renderer"
+	"github.com/alvinobarboza/go-raster/internal/scene"
+	"github.com/alvinobarboza/go-raster/internal/shapes"
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -27,31 +32,31 @@ func main() {
 	factor := 1
 	sensitivity := float32(10)
 	fov := float32(53)
-	camera := NewCamera(
+	camera := camera.NewCamera(
 		uint(ScreenWidth/factor),
 		uint(ScreenHeight/factor),
 		sensitivity,
 		NearPlane,
 		FarPlane,
 		fov,
-		NewVec3(0, 2, -0.7),
-		NewVec3(-30, 0, 0),
+		transforms.NewVec3(0, 2, -0.7),
+		transforms.NewVec3(-30, 0, 0),
 	)
 
-	scene := NewScene(camera)
+	s := scene.NewScene(camera)
 
-	wp := NewWorkerPool(4)
-	renderer := NewRenderer(wp)
+	wp := renderer.NewWorkerPool(4)
+	renderer := renderer.NewRenderer(wp)
 
-	renderer.AddActiveScene(scene)
+	renderer.AddActiveScene(s)
 
-	models, err := LoadSceneFromJSON("./scene.json")
+	models, err := scene.LoadSceneFromJSON("./scene.json")
 	if err != nil {
 		panic(err)
 	}
 
 	for i := range models {
-		scene.AddMesh(&models[i])
+		s.AddMesh(&models[i])
 	}
 
 	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))
@@ -63,7 +68,7 @@ func main() {
 	rl.InitWindow(ScreenWidth, ScreenHeight, "go-raster")
 	defer rl.CloseWindow()
 
-	img := rl.GenImageColor(int(camera.width), int(camera.height), rl.RayWhite)
+	img := rl.GenImageColor(int(camera.Width), int(camera.Height), rl.RayWhite)
 	defer rl.UnloadImage(img)
 
 	renderTexture := rl.LoadTextureFromImage(img)
@@ -81,7 +86,7 @@ func main() {
 
 		if rl.IsWindowResized() {
 			camera.UpdateCanvasSize(uint(rl.GetScreenWidth()/factor), uint(rl.GetScreenHeight()/factor))
-			rl.ImageResize(img, int32(camera.width), int32(camera.height))
+			rl.ImageResize(img, int32(camera.Width), int32(camera.Height))
 			rl.UnloadTexture(renderTexture)
 			renderTexture = rl.LoadTextureFromImage(img)
 		}
@@ -101,37 +106,37 @@ func main() {
 		upDownCam = 0
 
 		if rl.IsKeyDown(rl.KeyQ) {
-			models[1].transforms.scale = models[1].transforms.scale.Scale(0.99)
+			models[1].Transforms.Scale = models[1].Transforms.Scale.Scale(0.99)
 			models[1].UpdateTransforms()
-			models[1].transforms.scale.Print("scale down")
+			models[1].Transforms.Scale.Print("scale down")
 		}
 
 		if rl.IsKeyDown(rl.KeyR) {
 			if rl.IsKeyDown(rl.KeyLeftShift) {
-				models[1].transforms.rotation.Y -= .5
+				models[1].Transforms.Rotation.Y -= .5
 			} else {
-				models[1].transforms.rotation.Y += .5
+				models[1].Transforms.Rotation.Y += .5
 			}
 			models[1].UpdateTransforms()
-			models[1].transforms.rotation.Print("rotate")
+			models[1].Transforms.Rotation.Print("rotate")
 		}
 
 		if rl.IsKeyDown(rl.KeyE) {
-			models[1].transforms.scale = models[1].transforms.scale.Scale(1.01)
+			models[1].Transforms.Scale = models[1].Transforms.Scale.Scale(1.01)
 			models[1].UpdateTransforms()
-			models[1].transforms.scale.Print("scale up")
+			models[1].Transforms.Scale.Print("scale up")
 		}
 
 		if rl.IsKeyDown(rl.KeyLeft) {
-			models[1].transforms.position.X -= 0.01
+			models[1].Transforms.Position.X -= 0.01
 			models[1].UpdateTransforms()
-			models[1].transforms.position.Print("position")
+			models[1].Transforms.Position.Print("position")
 		}
 
 		if rl.IsKeyDown(rl.KeyRight) {
-			models[1].transforms.position.X += 0.01
+			models[1].Transforms.Position.X += 0.01
 			models[1].UpdateTransforms()
-			models[1].transforms.position.Print("position")
+			models[1].Transforms.Position.Print("position")
 		}
 
 		if rl.IsKeyDown(rl.KeyW) {
@@ -177,21 +182,21 @@ func main() {
 
 		renderer.Render()
 
-		rl.UpdateTexture(renderTexture, scene.activeCam.canvas)
+		rl.UpdateTexture(renderTexture, s.ActiveCam.Canvas)
 
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
 
 		rl.DrawTexturePro(
 			renderTexture,
-			rl.Rectangle{X: 0, Y: 0, Width: float32(camera.width), Height: float32(camera.height)},
+			rl.Rectangle{X: 0, Y: 0, Width: float32(camera.Width), Height: float32(camera.Height)},
 			rl.Rectangle{X: 0, Y: 0, Width: float32(rl.GetScreenWidth()), Height: float32(rl.GetScreenHeight())},
 			rl.Vector2Zero(),
 			0,
 			rl.White,
 		)
 
-		rl.DrawText("raster", int32(rl.GetScreenWidth()-70), int32(rl.GetScreenHeight()-20), 20, Black)
+		rl.DrawText("raster", int32(rl.GetScreenWidth()-70), int32(rl.GetScreenHeight()-20), 20, shapes.Black)
 
 		rl.DrawRectangle(2, 2, 305, 250, rl.Fade(rl.DarkGray, 0.6))
 		rl.DrawRectangleLines(2, 2, 305, 250, rl.Gray)
@@ -200,9 +205,9 @@ func main() {
 		rl.DrawText(
 			fmt.Sprintf(
 				"Cam: \nX:%01f \nY:%01f \nZ:%01f",
-				camera.transforms.position.X,
-				camera.transforms.position.Y,
-				camera.transforms.position.Z),
+				camera.Transforms.Position.X,
+				camera.Transforms.Position.Y,
+				camera.Transforms.Position.Z),
 			10, 50, 20, rl.White)
 		rl.DrawText("Move: A/W/S/D",
 			10, 140, 20, rl.White)

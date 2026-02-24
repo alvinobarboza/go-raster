@@ -1,6 +1,11 @@
-package main
+package shapes
 
-import "image/color"
+import (
+	"image/color"
+
+	"github.com/alvinobarboza/go-raster/internal/mesh"
+	"github.com/alvinobarboza/go-raster/internal/transforms"
+)
 
 func NewColor(r, g, b, a uint8) color.RGBA {
 	return color.RGBA{R: r, G: g, B: b, A: a}
@@ -35,7 +40,7 @@ var (
 )
 
 // CUBE === begging
-var vertsCube = []Vec3{
+var vertsCube = []transforms.Vec3{
 	{X: 1.0, Y: 1.0, Z: -1.0},   // 0 front top right
 	{X: -1.0, Y: 1.0, Z: -1.0},  // 1 front top left
 	{X: -1.0, Y: -1.0, Z: -1.0}, // 2 front bottom left
@@ -46,51 +51,51 @@ var vertsCube = []Vec3{
 	{X: 1.0, Y: -1.0, Z: 1.0},   // 7 back bottom right
 }
 
-var trisCube = []Triangle{
-	{v1: 0, v2: 1, v3: 2, color: Red},
-	{v1: 0, v2: 2, v3: 3, color: Red},
-	{v1: 4, v2: 0, v3: 3, color: Green},
-	{v1: 4, v2: 3, v3: 7, color: Green},
-	{v1: 5, v2: 4, v3: 7, color: Blue},
-	{v1: 5, v2: 7, v3: 6, color: Blue},
-	{v1: 1, v2: 5, v3: 6, color: Yellow},
-	{v1: 1, v2: 6, v3: 2, color: Yellow},
-	{v1: 4, v2: 5, v3: 1, color: Purple},
-	{v1: 4, v2: 1, v3: 0, color: Purple},
-	{v1: 2, v2: 6, v3: 7, color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
-	{v1: 2, v2: 7, v3: 3, color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
+var trisCube = []mesh.Triangle{
+	{V1: 0, V2: 1, V3: 2, Color: Red},
+	{V1: 0, V2: 2, V3: 3, Color: Red},
+	{V1: 4, V2: 0, V3: 3, Color: Green},
+	{V1: 4, V2: 3, V3: 7, Color: Green},
+	{V1: 5, V2: 4, V3: 7, Color: Blue},
+	{V1: 5, V2: 7, V3: 6, Color: Blue},
+	{V1: 1, V2: 5, V3: 6, Color: Yellow},
+	{V1: 1, V2: 6, V3: 2, Color: Yellow},
+	{V1: 4, V2: 5, V3: 1, Color: Purple},
+	{V1: 4, V2: 1, V3: 0, Color: Purple},
+	{V1: 2, V2: 6, V3: 7, Color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
+	{V1: 2, V2: 7, V3: 3, Color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
 }
 
 // CUBE === end
 
-func NewCube(pos, scale, rotation Vec3) Model {
-	m := NewMesh(vertsCube, nil, nil, trisCube, nil)
-	return NewModel(&m, NewTransforms(pos, scale, rotation))
+func NewCube(pos, scale, rotation transforms.Vec3) mesh.Model {
+	m := mesh.NewMesh(vertsCube, nil, nil, trisCube, nil)
+	return mesh.NewModel(&m, transforms.NewTransforms(pos, scale, rotation))
 }
 
-func NewTriangle(pos, scale, rotation Vec3) Model {
-	uv_verts := []Vec2{
+func NewTriangle(pos, scale, rotation transforms.Vec3) mesh.Model {
+	uv_verts := []transforms.Vec2{
 		{X: 0, Y: 0}, // 0 front bottom left
 		{X: 0, Y: 1}, // 1 front top left
 		{X: 1, Y: 1}, // 2 front top right
 	}
-	tris_verts := []Vec3{
+	tris_verts := []transforms.Vec3{
 		{X: -1, Y: -1, Z: 0}, // 0 front bottom left
 		{X: -1, Y: 1, Z: 0},  // 1 front top left
 		{X: 1, Y: 1, Z: 0},   // 2 front top right
 	}
-	tris_tris := []Triangle{
+	tris_tris := []mesh.Triangle{
 		{
-			v1: 0, v2: 1, v3: 2,
-			u1: 0, u2: 1, u3: 2,
-			n1: 0, n2: 0, n3: 0,
-			color: Red,
+			V1: 0, V2: 1, V3: 2,
+			U1: 0, U2: 1, U3: 2,
+			N1: 0, N2: 0, N3: 0,
+			Color: Red,
 		},
 	}
-	tris_normal := []Vec3{
+	tris_normal := []transforms.Vec3{
 		{Z: -1},
 	}
 
-	m := NewMesh(tris_verts, tris_normal, uv_verts, tris_tris, nil)
-	return NewModel(&m, NewTransforms(pos, scale, rotation))
+	m := mesh.NewMesh(tris_verts, tris_normal, uv_verts, tris_tris, nil)
+	return mesh.NewModel(&m, transforms.NewTransforms(pos, scale, rotation))
 }

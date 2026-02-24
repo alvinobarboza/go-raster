@@ -1,4 +1,4 @@
-package main
+package mesh
 
 import (
 	"bufio"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
 func LoadVec3(line string, indices int, zNegative bool) (float32, float32, float32) {
@@ -63,9 +65,9 @@ func LoadTriangle(line string) []Triangle {
 	for {
 		tmpData := data[offset:cursor]
 		t := Triangle{}
-		t.v1, t.n1, t.u1 = loadTriangleMetaData(origin)
-		t.v2, t.n2, t.u2 = loadTriangleMetaData(tmpData[1])
-		t.v3, t.n3, t.u3 = loadTriangleMetaData(tmpData[2])
+		t.V1, t.N1, t.U1 = loadTriangleMetaData(origin)
+		t.V2, t.N2, t.U2 = loadTriangleMetaData(tmpData[1])
+		t.V3, t.N3, t.U3 = loadTriangleMetaData(tmpData[2])
 		tris = append(tris, t)
 		offset++
 		cursor++
@@ -86,9 +88,9 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 	defer file.Close()
 
 	scanner := bufio.NewReader(file)
-	verts := make([]Vec3, 0)
-	normals := make([]Vec3, 0)
-	uvs := make([]Vec2, 0)
+	verts := make([]transforms.Vec3, 0)
+	normals := make([]transforms.Vec3, 0)
+	uvs := make([]transforms.Vec2, 0)
 	tris := make([]Triangle, 0)
 
 	for {
@@ -107,7 +109,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 			switch line[:2] {
 			case "v ":
 				x, y, z := LoadVec3(line, 3, zNegative)
-				verts = append(verts, NewVec3(x, y, z))
+				verts = append(verts, transforms.NewVec3(x, y, z))
 			case "vn":
 				x, y, z := LoadVec3(line, 3, zNegative)
 				if flipNormals {
@@ -115,10 +117,10 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 					y = -y
 					z = -z
 				}
-				normals = append(normals, NewVec3(x, y, z))
+				normals = append(normals, transforms.NewVec3(x, y, z))
 			case "vt":
 				x, y, _ := LoadVec3(line, 2, zNegative)
-				uvs = append(uvs, NewVec2(x, y))
+				uvs = append(uvs, transforms.NewVec2(x, y))
 			case "f ":
 				t := LoadTriangle(line)
 				tris = append(tris, t...)
@@ -147,18 +149,18 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 	var tempV, tempUV, tempN int
 	for i := range len(tris) {
 		if windingReorder {
-			tempV = tris[i].v1
-			tempUV = tris[i].u1
-			tempN = tris[i].n1
-			tris[i].v1 = tris[i].v3
-			tris[i].u1 = tris[i].u3
-			tris[i].n1 = tris[i].n3
-			tris[i].v3 = tempV
-			tris[i].u3 = tempUV
-			tris[i].n3 = tempN
+			tempV = tris[i].V1
+			tempUV = tris[i].U1
+			tempN = tris[i].N1
+			tris[i].V1 = tris[i].V3
+			tris[i].U1 = tris[i].U3
+			tris[i].N1 = tris[i].N3
+			tris[i].V3 = tempV
+			tris[i].U3 = tempUV
+			tris[i].N3 = tempN
 		}
 
-		tris[i].color = color.RGBA{
+		tris[i].Color = color.RGBA{
 			A: 255,
 			R: uint8(r),
 			G: uint8(g),

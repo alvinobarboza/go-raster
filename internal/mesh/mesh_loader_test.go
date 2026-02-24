@@ -1,17 +1,19 @@
-package main
+package mesh
 
 import (
 	"testing"
+
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
 func TestMeshLoader(t *testing.T) {
 	t.Run("loadVec3 Vertex", func(t *testing.T) {
 		lineToParse := "v 1.0 1.0 1.0"
 
-		want := NewVec3(1, 1, 1)
+		want := transforms.NewVec3(1, 1, 1)
 
 		x, y, z := LoadVec3(lineToParse, 3, true)
-		got := NewVec3(x, y, z)
+		got := transforms.NewVec3(x, y, z)
 
 		if want.X != got.X &&
 			want.Y != got.Y &&
@@ -23,10 +25,10 @@ func TestMeshLoader(t *testing.T) {
 	t.Run("loadVec3 UV", func(t *testing.T) {
 		lineToParse := "v 1.0 1.0 0.0"
 
-		want := NewVec3(1, 1, 0)
+		want := transforms.NewVec3(1, 1, 0)
 
 		x, y, z := LoadVec3(lineToParse, 3, true)
-		got := NewVec3(x, y, z)
+		got := transforms.NewVec3(x, y, z)
 
 		if want.X != got.X &&
 			want.Y != got.Y &&
@@ -38,9 +40,9 @@ func TestMeshLoader(t *testing.T) {
 	t.Run("LoadTriangle Vertex", func(t *testing.T) {
 		lineToParse := "f 2 2 2"
 		want := Triangle{
-			v1: 1,
-			v2: 1,
-			v3: 1,
+			V1: 1,
+			V2: 1,
+			V3: 1,
 		}
 
 		got := LoadTriangle(lineToParse)
@@ -48,9 +50,9 @@ func TestMeshLoader(t *testing.T) {
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
 		}
-		if got[0].v1 != want.v1 &&
-			got[0].v2 != want.v2 &&
-			got[0].v3 != want.v3 {
+		if got[0].V1 != want.V1 &&
+			got[0].V2 != want.V2 &&
+			got[0].V3 != want.V3 {
 			t.Errorf("Wanted %+v, got %+v", want, got)
 		}
 	})
@@ -58,12 +60,12 @@ func TestMeshLoader(t *testing.T) {
 	t.Run("LoadTriangle Vertex UV", func(t *testing.T) {
 		lineToParse := "f 2/2 2/2 2/2\n\r"
 		want := Triangle{
-			v1: 1,
-			v2: 1,
-			v3: 1,
-			u1: 1,
-			u2: 1,
-			u3: 1,
+			V1: 1,
+			V2: 1,
+			V3: 1,
+			U1: 1,
+			U2: 1,
+			U3: 1,
 		}
 
 		got := LoadTriangle(lineToParse)
@@ -71,12 +73,12 @@ func TestMeshLoader(t *testing.T) {
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
 		}
-		if got[0].v1 != want.v1 &&
-			got[0].v2 != want.v2 &&
-			got[0].v3 != want.v3 &&
-			got[0].u1 != want.u1 &&
-			got[0].u2 != want.u2 &&
-			got[0].u3 != want.u3 {
+		if got[0].V1 != want.V1 &&
+			got[0].V2 != want.V2 &&
+			got[0].V3 != want.V3 &&
+			got[0].U1 != want.U1 &&
+			got[0].U2 != want.U2 &&
+			got[0].U3 != want.U3 {
 			t.Errorf("Wanted %+v, got %+v", want, got)
 		}
 	})
@@ -84,12 +86,12 @@ func TestMeshLoader(t *testing.T) {
 	t.Run("LoadTriangle Vertex Normal", func(t *testing.T) {
 		lineToParse := "f 2//2 2//2 2//2\n\r"
 		want := Triangle{
-			v1: 1,
-			v2: 1,
-			v3: 1,
-			n1: 1,
-			n2: 1,
-			n3: 1,
+			V1: 1,
+			V2: 1,
+			V3: 1,
+			N1: 1,
+			N2: 1,
+			N3: 1,
 		}
 
 		got := LoadTriangle(lineToParse)
@@ -97,12 +99,12 @@ func TestMeshLoader(t *testing.T) {
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
 		}
-		if got[0].v1 != want.v1 &&
-			got[0].v2 != want.v2 &&
-			got[0].v3 != want.v3 &&
-			got[0].n1 != want.n1 &&
-			got[0].n2 != want.n2 &&
-			got[0].n3 != want.n3 {
+		if got[0].V1 != want.V1 &&
+			got[0].V2 != want.V2 &&
+			got[0].V3 != want.V3 &&
+			got[0].N1 != want.N1 &&
+			got[0].N2 != want.N2 &&
+			got[0].N3 != want.N3 {
 			t.Errorf("Wanted %+v, got %+v", want, got)
 		}
 	})
@@ -110,15 +112,15 @@ func TestMeshLoader(t *testing.T) {
 	t.Run("LoadTriangle Full 1", func(t *testing.T) {
 		lineToParse := "f 2/3/2 2/3/2 2/3/2\n\r"
 		want := Triangle{
-			v1: 1,
-			v2: 1,
-			v3: 1,
-			u1: 2,
-			u2: 2,
-			u3: 2,
-			n1: 1,
-			n2: 1,
-			n3: 1,
+			V1: 1,
+			V2: 1,
+			V3: 1,
+			U1: 2,
+			U2: 2,
+			U3: 2,
+			N1: 1,
+			N2: 1,
+			N3: 1,
 		}
 
 		got := LoadTriangle(lineToParse)
@@ -126,15 +128,15 @@ func TestMeshLoader(t *testing.T) {
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
 		}
-		if got[0].v1 != want.v1 &&
-			got[0].v2 != want.v2 &&
-			got[0].v3 != want.v3 &&
-			got[0].n1 != want.n1 &&
-			got[0].n2 != want.n2 &&
-			got[0].n3 != want.n3 &&
-			got[0].u1 != want.u1 &&
-			got[0].u2 != want.u2 &&
-			got[0].u3 != want.u3 {
+		if got[0].V1 != want.V1 &&
+			got[0].V2 != want.V2 &&
+			got[0].V3 != want.V3 &&
+			got[0].N1 != want.N1 &&
+			got[0].N2 != want.N2 &&
+			got[0].N3 != want.N3 &&
+			got[0].U1 != want.U1 &&
+			got[0].U2 != want.U2 &&
+			got[0].U3 != want.U3 {
 			t.Errorf("Wanted %+v, got %+v", want, got)
 		}
 	})
@@ -143,14 +145,14 @@ func TestMeshLoader(t *testing.T) {
 		lineToParse := "f 2/3/4 5/6/7 8/9/10 11/12/13\n\r"
 		want := []Triangle{
 			{
-				v1: 1, u1: 2, n1: 3,
-				v2: 4, u2: 5, n2: 6,
-				v3: 7, u3: 8, n3: 9,
+				V1: 1, U1: 2, N1: 3,
+				V2: 4, U2: 5, N2: 6,
+				V3: 7, U3: 8, N3: 9,
 			},
 			{
-				v1: 1, u1: 2, n1: 3,
-				v2: 7, u2: 8, n2: 9,
-				v3: 10, u3: 11, n3: 12,
+				V1: 1, U1: 2, N1: 3,
+				V2: 7, U2: 8, N2: 9,
+				V3: 10, U3: 11, N3: 12,
 			},
 		}
 
@@ -160,15 +162,15 @@ func TestMeshLoader(t *testing.T) {
 			t.Error("Didn't parse anything")
 		}
 		for i := range 2 {
-			if got[i].v1 != want[i].v1 &&
-				got[i].v2 != want[i].v2 &&
-				got[i].v3 != want[i].v3 &&
-				got[i].n1 != want[i].n1 &&
-				got[i].n2 != want[i].n2 &&
-				got[i].n3 != want[i].n3 &&
-				got[i].u1 != want[i].u1 &&
-				got[i].u2 != want[i].u2 &&
-				got[i].u3 != want[i].u3 {
+			if got[i].V1 != want[i].V1 &&
+				got[i].V2 != want[i].V2 &&
+				got[i].V3 != want[i].V3 &&
+				got[i].N1 != want[i].N1 &&
+				got[i].N2 != want[i].N2 &&
+				got[i].N3 != want[i].N3 &&
+				got[i].U1 != want[i].U1 &&
+				got[i].U2 != want[i].U2 &&
+				got[i].U3 != want[i].U3 {
 				t.Errorf("Wanted %+v, got %+v", want, got)
 			}
 		}
@@ -178,19 +180,19 @@ func TestMeshLoader(t *testing.T) {
 		lineToParse := "f 2/3/4 5/6/7 8/9/10 11/12/13 14/15/16\n\r"
 		want := []Triangle{
 			{
-				v1: 1, u1: 2, n1: 3,
-				v2: 4, u2: 5, n2: 6,
-				v3: 7, u3: 8, n3: 9,
+				V1: 1, U1: 2, N1: 3,
+				V2: 4, U2: 5, N2: 6,
+				V3: 7, U3: 8, N3: 9,
 			},
 			{
-				v1: 1, u1: 2, n1: 3,
-				v2: 7, u2: 8, n2: 9,
-				v3: 10, u3: 11, n3: 12,
+				V1: 1, U1: 2, N1: 3,
+				V2: 7, U2: 8, N2: 9,
+				V3: 10, U3: 11, N3: 12,
 			},
 			{
-				v1: 1, u1: 2, n1: 3,
-				v2: 10, u2: 11, n2: 12,
-				v3: 13, u3: 14, n3: 15,
+				V1: 1, U1: 2, N1: 3,
+				V2: 10, U2: 11, N2: 12,
+				V3: 13, U3: 14, N3: 15,
 			},
 		}
 
@@ -200,15 +202,15 @@ func TestMeshLoader(t *testing.T) {
 			t.Error("Didn't parse anything")
 		}
 		for i := range 3 {
-			if got[i].v1 != want[i].v1 &&
-				got[i].v2 != want[i].v2 &&
-				got[i].v3 != want[i].v3 &&
-				got[i].n1 != want[i].n1 &&
-				got[i].n2 != want[i].n2 &&
-				got[i].n3 != want[i].n3 &&
-				got[i].u1 != want[i].u1 &&
-				got[i].u2 != want[i].u2 &&
-				got[i].u3 != want[i].u3 {
+			if got[i].V1 != want[i].V1 &&
+				got[i].V2 != want[i].V2 &&
+				got[i].V3 != want[i].V3 &&
+				got[i].N1 != want[i].N1 &&
+				got[i].N2 != want[i].N2 &&
+				got[i].N3 != want[i].N3 &&
+				got[i].U1 != want[i].U1 &&
+				got[i].U2 != want[i].U2 &&
+				got[i].U3 != want[i].U3 {
 				t.Errorf("Wanted %+v, got %+v", want, got)
 			}
 		}

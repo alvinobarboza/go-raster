@@ -1,4 +1,4 @@
-package main
+package transforms
 
 import (
 	"fmt"
@@ -281,41 +281,41 @@ func (m Matrix) MultiplyByMatrix(m2 Matrix) Matrix {
 }
 
 type Transforms struct {
-	scale            Vec3
-	rotation         Vec3
-	position         Vec3
-	forwardDirection Vec3
+	Scale            Vec3
+	Rotation         Vec3
+	Position         Vec3
+	ForwardDirection Vec3
 
-	scaleMat         Matrix
-	rotationMat      Matrix
-	translationMat   Matrix
-	matrixTransforms Matrix
+	ScaleMat         Matrix
+	RotationMat      Matrix
+	TranslationMat   Matrix
+	MatrixTransforms Matrix
 }
 
 func NewTransforms(pos, scale, rot Vec3) Transforms {
 	return Transforms{
-		position: pos,
-		scale:    scale,
-		rotation: rot,
+		Position: pos,
+		Scale:    scale,
+		Rotation: rot,
 	}
 }
 
 func (t *Transforms) UpdateModelTransforms() {
-	t.rotationMat = NewRotationMatrix(t.rotation)
-	t.scaleMat = NewScaleMatrix(t.scale)
-	t.translationMat = NewTranslationMatrix(t.position)
+	t.RotationMat = NewRotationMatrix(t.Rotation)
+	t.ScaleMat = NewScaleMatrix(t.Scale)
+	t.TranslationMat = NewTranslationMatrix(t.Position)
 
-	t.matrixTransforms = t.rotationMat.MultiplyByMatrix(t.scaleMat)
-	t.matrixTransforms = t.translationMat.MultiplyByMatrix(t.matrixTransforms)
+	t.MatrixTransforms = t.RotationMat.MultiplyByMatrix(t.ScaleMat)
+	t.MatrixTransforms = t.TranslationMat.MultiplyByMatrix(t.MatrixTransforms)
 }
 
 func (t *Transforms) UpdateCameraTransforms() {
-	t.rotationMat = NewRotationMatrix(t.rotation).Transposed()
-	t.scaleMat = NewScaleMatrix(t.scale)
-	t.translationMat = NewTranslationMatrix(t.position.Scale(-1))
+	t.RotationMat = NewRotationMatrix(t.Rotation).Transposed()
+	t.ScaleMat = NewScaleMatrix(t.Scale)
+	t.TranslationMat = NewTranslationMatrix(t.Position.Scale(-1))
 
-	t.matrixTransforms = t.scaleMat.MultiplyByMatrix(t.rotationMat)
-	t.matrixTransforms = t.matrixTransforms.MultiplyByMatrix(t.translationMat)
+	t.MatrixTransforms = t.ScaleMat.MultiplyByMatrix(t.RotationMat)
+	t.MatrixTransforms = t.MatrixTransforms.MultiplyByMatrix(t.TranslationMat)
 }
 
 func FovScaling(angle float32) float32 {
@@ -330,54 +330,4 @@ func (m Matrix) Print(name string) {
 		}
 		fmt.Print("\n")
 	}
-}
-
-func Minf(a, b float32) float32 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func Maxf(a, b float32) float32 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func MinIn(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func MaxIn(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func EdgeCross(a, b, p ScreenPoint) float32 {
-	abX := b.X - a.X
-	abY := b.Y - a.Y
-
-	apX := p.X - a.X
-	apY := p.Y - a.Y
-
-	return (abX * apY) - (abY * apX)
-}
-
-func Floor32(x float32) float32 {
-	i := int(x)
-	if x < float32(i) {
-		return float32(i - 1)
-	}
-	return float32(i)
-}
-
-func Ceil32(x float32) float32 {
-	return -Floor32(-x)
 }

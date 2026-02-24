@@ -1,9 +1,12 @@
-package main
+package scene
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/alvinobarboza/go-raster/internal/mesh"
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
 type ModelData struct {
@@ -23,7 +26,7 @@ type Vec3Data struct {
 	Z float32 `json:"z"`
 }
 
-func LoadSceneFromJSON(filePath string) ([]Model, error) {
+func LoadSceneFromJSON(filePath string) ([]mesh.Model, error) {
 	fileBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read scene file: %w", err)
@@ -34,25 +37,25 @@ func LoadSceneFromJSON(filePath string) ([]Model, error) {
 		return nil, fmt.Errorf("failed to parse scene json: %w", err)
 	}
 
-	var models []Model
+	var models []mesh.Model
 
 	for _, m := range modelsData {
-		mesh, err := LoadMeshFromFile(
+		meshData, err := mesh.LoadMeshFromFile(
 			m.MeshPath, m.TexturePath, m.ZNegative,
 			m.WindingReorder, m.FlipNormals)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load asset %s: %w", m.MeshPath, err)
 		}
 
-		fmt.Printf("tris: %d verts: %d\n", len(mesh.tris), len(mesh.verts))
+		fmt.Printf("tris: %d verts: %d\n", len(meshData.Tris), len(meshData.Verts))
 
-		transforms := NewTransforms(
-			NewVec3(m.Position.X, m.Position.Y, m.Position.Z),
-			NewVec3(m.Scale.X, m.Scale.Y, m.Scale.Z),
-			NewVec3(m.Rotation.X, m.Rotation.Y, m.Rotation.Z),
+		transforms := transforms.NewTransforms(
+			transforms.NewVec3(m.Position.X, m.Position.Y, m.Position.Z),
+			transforms.NewVec3(m.Scale.X, m.Scale.Y, m.Scale.Z),
+			transforms.NewVec3(m.Rotation.X, m.Rotation.Y, m.Rotation.Z),
 		)
 
-		model := NewModel(&mesh, transforms)
+		model := mesh.NewModel(&meshData, transforms)
 		models = append(models, model)
 	}
 
