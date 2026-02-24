@@ -184,7 +184,7 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 ClippedVertex, t *Texture)
 	}
 }
 
-func (r *Renderer) Render() {
+func (r *Renderer) renderMeshs() {
 	for _, o := range r.scene.objects {
 		matTransform := r.scene.activeCam.transforms.matrixTransforms.MultiplyByMatrix(o.transforms.matrixTransforms)
 		matRoation := r.scene.activeCam.transforms.rotationMat.MultiplyByMatrix(o.transforms.rotationMat)
@@ -195,7 +195,6 @@ func (r *Renderer) Render() {
 			continue
 		}
 
-		// TODO: generate new tris on frustum plane intersections
 		for _, t := range o.mesh.tris {
 			o.mesh.vertsWorld[t.v1] = matTransform.MultiplyByVec3(o.mesh.verts[t.v1])
 			o.mesh.vertsWorld[t.v2] = matTransform.MultiplyByVec3(o.mesh.verts[t.v2])
@@ -293,4 +292,9 @@ func (r *Renderer) Render() {
 		}
 		// break
 	}
+}
+
+func (r *Renderer) Render() {
+	r.scene.activeCam.ClearCanvas()
+	r.renderMeshs()
 }

@@ -86,8 +86,6 @@ func main() {
 			renderTexture = rl.LoadTextureFromImage(img)
 		}
 
-		camera.ClearCanvas()
-
 		if rl.IsKeyPressed(rl.KeyTab) {
 			camera.ToggleViewLock()
 			if cursorEnabled {
