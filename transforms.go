@@ -92,6 +92,25 @@ func (v Vec3) Print(name string) {
 	fmt.Printf("%s = %+v\n", name, v)
 }
 
+const (
+	X0Y0 int = iota
+	X1Y0
+	X2Y0
+	X3Y0
+	X0Y1
+	X1Y1
+	X2Y1
+	X3Y1
+	X0Y2
+	X1Y2
+	X2Y2
+	X3Y2
+	X0Y3
+	X1Y3
+	X2Y3
+	X3Y3
+)
+
 type Matrix [M4x4]float32
 
 func NewZeroMatrix() Matrix {
@@ -161,27 +180,34 @@ func (m Matrix) Transposed() Matrix {
 }
 
 func (m Matrix) MultiplyByVec3(v Vec3) Vec3 {
-	v4 := [MatLength]float32{v.X, v.Y, v.Z, 1.0}
-	result := [MatLength]float32{0.0, 0.0, 0.0, 0.0}
-
-	for row := range MatLength {
-		for col := range MatLength {
-			result[row] += v4[col] * m[row*MatLength+col]
-		}
+	return Vec3{
+		X: (v.X * m[X0Y0]) + (v.Y * m[X1Y0]) + (v.Z * m[X2Y0]) + (1 * m[X3Y0]),
+		Y: (v.X * m[X0Y1]) + (v.Y * m[X1Y1]) + (v.Z * m[X2Y1]) + (1 * m[X3Y1]),
+		Z: (v.X * m[X0Y2]) + (v.Y * m[X1Y2]) + (v.Z * m[X2Y2]) + (1 * m[X3Y2]),
 	}
-
-	return Vec3{X: result[0], Y: result[1], Z: result[2]}
 }
 
 func (m Matrix) MultiplyByMatrix(m2 Matrix) Matrix {
-	result := NewZeroMatrix()
-	for row := range MatLength {
-		for col := range MatLength {
-			for k := range MatLength {
-				result[row*MatLength+col] += m[row*MatLength+k] * m2[k*MatLength+col]
-			}
-		}
-	}
+	result := Matrix{}
+	result[X0Y0] = (m[X0Y0] * m2[X0Y0]) + (m[X1Y0] * m2[X0Y1]) + (m[X2Y0] * m2[X0Y2]) + (m[X3Y0] * m2[X0Y3])
+	result[X1Y0] = (m[X0Y0] * m2[X1Y0]) + (m[X1Y0] * m2[X1Y1]) + (m[X2Y0] * m2[X1Y2]) + (m[X3Y0] * m2[X1Y3])
+	result[X2Y0] = (m[X0Y0] * m2[X2Y0]) + (m[X1Y0] * m2[X2Y1]) + (m[X2Y0] * m2[X2Y2]) + (m[X3Y0] * m2[X2Y3])
+	result[X3Y0] = (m[X0Y0] * m2[X3Y0]) + (m[X1Y0] * m2[X3Y1]) + (m[X2Y0] * m2[X3Y2]) + (m[X3Y0] * m2[X3Y3])
+
+	result[X0Y1] = (m[X0Y1] * m2[X0Y0]) + (m[X1Y1] * m2[X0Y1]) + (m[X2Y1] * m2[X0Y2]) + (m[X3Y1] * m2[X0Y3])
+	result[X1Y1] = (m[X0Y1] * m2[X1Y0]) + (m[X1Y1] * m2[X1Y1]) + (m[X2Y1] * m2[X1Y2]) + (m[X3Y1] * m2[X1Y3])
+	result[X2Y1] = (m[X0Y1] * m2[X2Y0]) + (m[X1Y1] * m2[X2Y1]) + (m[X2Y1] * m2[X2Y2]) + (m[X3Y1] * m2[X2Y3])
+	result[X3Y1] = (m[X0Y1] * m2[X3Y0]) + (m[X1Y1] * m2[X3Y1]) + (m[X2Y1] * m2[X3Y2]) + (m[X3Y1] * m2[X3Y3])
+
+	result[X0Y2] = (m[X0Y2] * m2[X0Y0]) + (m[X1Y2] * m2[X0Y1]) + (m[X2Y2] * m2[X0Y2]) + (m[X3Y2] * m2[X0Y3])
+	result[X1Y2] = (m[X0Y2] * m2[X1Y0]) + (m[X1Y2] * m2[X1Y1]) + (m[X2Y2] * m2[X1Y2]) + (m[X3Y2] * m2[X1Y3])
+	result[X2Y2] = (m[X0Y2] * m2[X2Y0]) + (m[X1Y2] * m2[X2Y1]) + (m[X2Y2] * m2[X2Y2]) + (m[X3Y2] * m2[X2Y3])
+	result[X3Y2] = (m[X0Y2] * m2[X3Y0]) + (m[X1Y2] * m2[X3Y1]) + (m[X2Y2] * m2[X3Y2]) + (m[X3Y2] * m2[X3Y3])
+
+	result[X0Y3] = (m[X0Y3] * m2[X0Y0]) + (m[X1Y3] * m2[X0Y1]) + (m[X2Y3] * m2[X0Y2]) + (m[X3Y3] * m2[X0Y3])
+	result[X1Y3] = (m[X0Y3] * m2[X1Y0]) + (m[X1Y3] * m2[X1Y1]) + (m[X2Y3] * m2[X1Y2]) + (m[X3Y3] * m2[X1Y3])
+	result[X2Y3] = (m[X0Y3] * m2[X2Y0]) + (m[X1Y3] * m2[X2Y1]) + (m[X2Y3] * m2[X2Y2]) + (m[X3Y3] * m2[X2Y3])
+	result[X3Y3] = (m[X0Y3] * m2[X3Y0]) + (m[X1Y3] * m2[X3Y1]) + (m[X2Y3] * m2[X3Y2]) + (m[X3Y3] * m2[X3Y3])
 
 	return result
 }

@@ -358,3 +358,225 @@ func TestMatrices(t *testing.T) {
 		}
 	})
 }
+
+func BenchmarkUnrolled(b *testing.B) {
+	mat1 := NewRotationMatrix(NewVec3(30, 20, 20))
+	mat2 := NewRotationMatrix(NewVec3(30, 20, 20))
+
+	b.Run("for", func(b *testing.B) {
+		for b.Loop() {
+			m := Matrix{}
+			for row := range MatLength {
+				for col := range MatLength {
+					for k := range MatLength {
+						m[row*MatLength+col] += mat1[row*MatLength+k] * mat2[k*MatLength+col]
+					}
+				}
+			}
+		}
+	})
+
+	b.Run("unr", func(b *testing.B) {
+		for b.Loop() {
+			m := Matrix{}
+			m[X0Y0] = (mat1[X0Y0] * mat2[X0Y0]) + (mat1[X1Y0] * mat2[X0Y1]) + (mat1[X2Y0] * mat2[X0Y2]) + (mat1[X3Y0] * mat2[X0Y3])
+			m[X1Y0] = (mat1[X0Y0] * mat2[X1Y0]) + (mat1[X1Y0] * mat2[X1Y1]) + (mat1[X2Y0] * mat2[X1Y2]) + (mat1[X3Y0] * mat2[X1Y3])
+			m[X2Y0] = (mat1[X0Y0] * mat2[X2Y0]) + (mat1[X1Y0] * mat2[X2Y1]) + (mat1[X2Y0] * mat2[X2Y2]) + (mat1[X3Y0] * mat2[X2Y3])
+			m[X3Y0] = (mat1[X0Y0] * mat2[X3Y0]) + (mat1[X1Y0] * mat2[X3Y1]) + (mat1[X2Y0] * mat2[X3Y2]) + (mat1[X3Y0] * mat2[X3Y3])
+
+			m[X0Y1] = (mat1[X0Y1] * mat2[X0Y0]) + (mat1[X1Y1] * mat2[X0Y1]) + (mat1[X2Y1] * mat2[X0Y2]) + (mat1[X3Y1] * mat2[X0Y3])
+			m[X1Y1] = (mat1[X0Y1] * mat2[X1Y0]) + (mat1[X1Y1] * mat2[X1Y1]) + (mat1[X2Y1] * mat2[X1Y2]) + (mat1[X3Y1] * mat2[X1Y3])
+			m[X2Y1] = (mat1[X0Y1] * mat2[X2Y0]) + (mat1[X1Y1] * mat2[X2Y1]) + (mat1[X2Y1] * mat2[X2Y2]) + (mat1[X3Y1] * mat2[X2Y3])
+			m[X3Y1] = (mat1[X0Y1] * mat2[X3Y0]) + (mat1[X1Y1] * mat2[X3Y1]) + (mat1[X2Y1] * mat2[X3Y2]) + (mat1[X3Y1] * mat2[X3Y3])
+
+			m[X0Y2] = (mat1[X0Y2] * mat2[X0Y0]) + (mat1[X1Y2] * mat2[X0Y1]) + (mat1[X2Y2] * mat2[X0Y2]) + (mat1[X3Y2] * mat2[X0Y3])
+			m[X1Y2] = (mat1[X0Y2] * mat2[X1Y0]) + (mat1[X1Y2] * mat2[X1Y1]) + (mat1[X2Y2] * mat2[X1Y2]) + (mat1[X3Y2] * mat2[X1Y3])
+			m[X2Y2] = (mat1[X0Y2] * mat2[X2Y0]) + (mat1[X1Y2] * mat2[X2Y1]) + (mat1[X2Y2] * mat2[X2Y2]) + (mat1[X3Y2] * mat2[X2Y3])
+			m[X3Y2] = (mat1[X0Y2] * mat2[X3Y0]) + (mat1[X1Y2] * mat2[X3Y1]) + (mat1[X2Y2] * mat2[X3Y2]) + (mat1[X3Y2] * mat2[X3Y3])
+
+			m[X0Y3] = (mat1[X0Y3] * mat2[X0Y0]) + (mat1[X1Y3] * mat2[X0Y1]) + (mat1[X2Y3] * mat2[X0Y2]) + (mat1[X3Y3] * mat2[X0Y3])
+			m[X1Y3] = (mat1[X0Y3] * mat2[X1Y0]) + (mat1[X1Y3] * mat2[X1Y1]) + (mat1[X2Y3] * mat2[X1Y2]) + (mat1[X3Y3] * mat2[X1Y3])
+			m[X2Y3] = (mat1[X0Y3] * mat2[X2Y0]) + (mat1[X1Y3] * mat2[X2Y1]) + (mat1[X2Y3] * mat2[X2Y2]) + (mat1[X3Y3] * mat2[X2Y3])
+			m[X3Y3] = (mat1[X0Y3] * mat2[X3Y0]) + (mat1[X1Y3] * mat2[X3Y1]) + (mat1[X2Y3] * mat2[X3Y2]) + (mat1[X3Y3] * mat2[X3Y3])
+		}
+	})
+
+	b.Run("unrOp", func(b *testing.B) {
+
+		// AI suggestion - trying to avoid cache miss
+
+		for b.Loop() {
+			// Linearly load mat2 rows into registers to prevent column-jumping
+			r0x0, r0x1, r0x2, r0x3 := mat2[X0Y0], mat2[X1Y0], mat2[X2Y0], mat2[X3Y0]
+			r1x0, r1x1, r1x2, r1x3 := mat2[X0Y1], mat2[X1Y1], mat2[X2Y1], mat2[X3Y1]
+			r2x0, r2x1, r2x2, r2x3 := mat2[X0Y2], mat2[X1Y2], mat2[X2Y2], mat2[X3Y2]
+			r3x0, r3x1, r3x2, r3x3 := mat2[X0Y3], mat2[X1Y3], mat2[X2Y3], mat2[X3Y3]
+
+			m := Matrix{}
+
+			// Row Y0
+			m[X0Y0] = (mat1[X0Y0] * r0x0) + (mat1[X1Y0] * r1x0) + (mat1[X2Y0] * r2x0) + (mat1[X3Y0] * r3x0)
+			m[X1Y0] = (mat1[X0Y0] * r0x1) + (mat1[X1Y0] * r1x1) + (mat1[X2Y0] * r2x1) + (mat1[X3Y0] * r3x1)
+			m[X2Y0] = (mat1[X0Y0] * r0x2) + (mat1[X1Y0] * r1x2) + (mat1[X2Y0] * r2x2) + (mat1[X3Y0] * r3x2)
+			m[X3Y0] = (mat1[X0Y0] * r0x3) + (mat1[X1Y0] * r1x3) + (mat1[X2Y0] * r2x3) + (mat1[X3Y0] * r3x3)
+
+			// Row Y1
+			m[X0Y1] = (mat1[X0Y1] * r0x0) + (mat1[X1Y1] * r1x0) + (mat1[X2Y1] * r2x0) + (mat1[X3Y1] * r3x0)
+			m[X1Y1] = (mat1[X0Y1] * r0x1) + (mat1[X1Y1] * r1x1) + (mat1[X2Y1] * r2x1) + (mat1[X3Y1] * r3x1)
+			m[X2Y1] = (mat1[X0Y1] * r0x2) + (mat1[X1Y1] * r1x2) + (mat1[X2Y1] * r2x2) + (mat1[X3Y1] * r3x2)
+			m[X3Y1] = (mat1[X0Y1] * r0x3) + (mat1[X1Y1] * r1x3) + (mat1[X2Y1] * r2x3) + (mat1[X3Y1] * r3x3)
+
+			// Row Y2
+			m[X0Y2] = (mat1[X0Y2] * r0x0) + (mat1[X1Y2] * r1x0) + (mat1[X2Y2] * r2x0) + (mat1[X3Y2] * r3x0)
+			m[X1Y2] = (mat1[X0Y2] * r0x1) + (mat1[X1Y2] * r1x1) + (mat1[X2Y2] * r2x1) + (mat1[X3Y2] * r3x1)
+			m[X2Y2] = (mat1[X0Y2] * r0x2) + (mat1[X1Y2] * r1x2) + (mat1[X2Y2] * r2x2) + (mat1[X3Y2] * r3x2)
+			m[X3Y2] = (mat1[X0Y2] * r0x3) + (mat1[X1Y2] * r1x3) + (mat1[X2Y2] * r2x3) + (mat1[X3Y2] * r3x3)
+
+			// Row Y3
+			m[X0Y3] = (mat1[X0Y3] * r0x0) + (mat1[X1Y3] * r1x0) + (mat1[X2Y3] * r2x0) + (mat1[X3Y3] * r3x0)
+			m[X1Y3] = (mat1[X0Y3] * r0x1) + (mat1[X1Y3] * r1x1) + (mat1[X2Y3] * r2x1) + (mat1[X3Y3] * r3x1)
+			m[X2Y3] = (mat1[X0Y3] * r0x2) + (mat1[X1Y3] * r1x2) + (mat1[X2Y3] * r2x2) + (mat1[X3Y3] * r3x2)
+			m[X3Y3] = (mat1[X0Y3] * r0x3) + (mat1[X1Y3] * r1x3) + (mat1[X2Y3] * r2x3) + (mat1[X3Y3] * r3x3)
+		}
+	})
+
+	b.Run("imp", func(b *testing.B) {
+		for b.Loop() {
+			mat1.MultiplyByMatrix(mat2)
+		}
+	})
+}
+
+func BenchmarkUnrolledVec(b *testing.B) {
+	mat1 := Matrix{
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9, 10, 11, 12,
+		13, 14, 15, 16,
+	}
+
+	vec := NewVec3(11, 15, 19)
+
+	b.Run("vFor", func(b *testing.B) {
+		for b.Loop() {
+			v4 := [MatLength]float32{vec.X, vec.Y, vec.Z, 1.0}
+			result := [MatLength]float32{0.0, 0.0, 0.0, 0.0}
+
+			for row := range MatLength {
+				for col := range MatLength {
+					result[row] += v4[col] * mat1[row*MatLength+col]
+				}
+			}
+		}
+	})
+
+	b.Run("vUnr", func(b *testing.B) {
+		for b.Loop() {
+			NewVec3(
+				(vec.X*mat1[X0Y0])+(vec.Y*mat1[X1Y0])+(vec.Z*mat1[X2Y0])+(1*mat1[X3Y0]),
+				(vec.X*mat1[X0Y1])+(vec.Y*mat1[X1Y1])+(vec.Z*mat1[X2Y1])+(1*mat1[X3Y1]),
+				(vec.X*mat1[X0Y2])+(vec.Y*mat1[X1Y2])+(vec.Z*mat1[X2Y2])+(1*mat1[X3Y2]),
+			)
+		}
+	})
+}
+
+func TestMatrixMult(t *testing.T) {
+	mat1 := Matrix{
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9, 10, 11, 12,
+		13, 14, 15, 16,
+	}
+	mat2 := Matrix{
+		11, 12, 13, 14,
+		15, 16, 17, 18,
+		19, 110, 111, 112,
+		113, 114, 115, 116,
+	}
+
+	vec := NewVec3(11, 15, 19)
+
+	wantMat := Matrix{
+		550, 830, 840, 850,
+		1182, 1838, 1864, 1890,
+		1814, 2846, 2888, 2930,
+		2446, 3854, 3912, 3970,
+	}
+
+	wantVec := NewVec3(102, 286, 470)
+
+	t.Run("unrolled", func(t *testing.T) {
+		m := Matrix{}
+		m[X0Y0] = (mat1[X0Y0] * mat2[X0Y0]) + (mat1[X1Y0] * mat2[X0Y1]) + (mat1[X2Y0] * mat2[X0Y2]) + (mat1[X3Y0] * mat2[X0Y3])
+		m[X1Y0] = (mat1[X0Y0] * mat2[X1Y0]) + (mat1[X1Y0] * mat2[X1Y1]) + (mat1[X2Y0] * mat2[X1Y2]) + (mat1[X3Y0] * mat2[X1Y3])
+		m[X2Y0] = (mat1[X0Y0] * mat2[X2Y0]) + (mat1[X1Y0] * mat2[X2Y1]) + (mat1[X2Y0] * mat2[X2Y2]) + (mat1[X3Y0] * mat2[X2Y3])
+		m[X3Y0] = (mat1[X0Y0] * mat2[X3Y0]) + (mat1[X1Y0] * mat2[X3Y1]) + (mat1[X2Y0] * mat2[X3Y2]) + (mat1[X3Y0] * mat2[X3Y3])
+
+		m[X0Y1] = (mat1[X0Y1] * mat2[X0Y0]) + (mat1[X1Y1] * mat2[X0Y1]) + (mat1[X2Y1] * mat2[X0Y2]) + (mat1[X3Y1] * mat2[X0Y3])
+		m[X1Y1] = (mat1[X0Y1] * mat2[X1Y0]) + (mat1[X1Y1] * mat2[X1Y1]) + (mat1[X2Y1] * mat2[X1Y2]) + (mat1[X3Y1] * mat2[X1Y3])
+		m[X2Y1] = (mat1[X0Y1] * mat2[X2Y0]) + (mat1[X1Y1] * mat2[X2Y1]) + (mat1[X2Y1] * mat2[X2Y2]) + (mat1[X3Y1] * mat2[X2Y3])
+		m[X3Y1] = (mat1[X0Y1] * mat2[X3Y0]) + (mat1[X1Y1] * mat2[X3Y1]) + (mat1[X2Y1] * mat2[X3Y2]) + (mat1[X3Y1] * mat2[X3Y3])
+
+		m[X0Y2] = (mat1[X0Y2] * mat2[X0Y0]) + (mat1[X1Y2] * mat2[X0Y1]) + (mat1[X2Y2] * mat2[X0Y2]) + (mat1[X3Y2] * mat2[X0Y3])
+		m[X1Y2] = (mat1[X0Y2] * mat2[X1Y0]) + (mat1[X1Y2] * mat2[X1Y1]) + (mat1[X2Y2] * mat2[X1Y2]) + (mat1[X3Y2] * mat2[X1Y3])
+		m[X2Y2] = (mat1[X0Y2] * mat2[X2Y0]) + (mat1[X1Y2] * mat2[X2Y1]) + (mat1[X2Y2] * mat2[X2Y2]) + (mat1[X3Y2] * mat2[X2Y3])
+		m[X3Y2] = (mat1[X0Y2] * mat2[X3Y0]) + (mat1[X1Y2] * mat2[X3Y1]) + (mat1[X2Y2] * mat2[X3Y2]) + (mat1[X3Y2] * mat2[X3Y3])
+
+		m[X0Y3] = (mat1[X0Y3] * mat2[X0Y0]) + (mat1[X1Y3] * mat2[X0Y1]) + (mat1[X2Y3] * mat2[X0Y2]) + (mat1[X3Y3] * mat2[X0Y3])
+		m[X1Y3] = (mat1[X0Y3] * mat2[X1Y0]) + (mat1[X1Y3] * mat2[X1Y1]) + (mat1[X2Y3] * mat2[X1Y2]) + (mat1[X3Y3] * mat2[X1Y3])
+		m[X2Y3] = (mat1[X0Y3] * mat2[X2Y0]) + (mat1[X1Y3] * mat2[X2Y1]) + (mat1[X2Y3] * mat2[X2Y2]) + (mat1[X3Y3] * mat2[X2Y3])
+		m[X3Y3] = (mat1[X0Y3] * mat2[X3Y0]) + (mat1[X1Y3] * mat2[X3Y1]) + (mat1[X2Y3] * mat2[X3Y2]) + (mat1[X3Y3] * mat2[X3Y3])
+
+		m.Print("unrolled")
+
+		for i := range M4x4 {
+			if wantMat[i] != m[i] {
+				t.Errorf("Mismatch want %v got %v", wantMat, m)
+			}
+		}
+	})
+
+	t.Run("for loop", func(t *testing.T) {
+		m := Matrix{}
+		for row := range MatLength {
+			for col := range MatLength {
+				for k := range MatLength {
+					m[row*MatLength+col] += mat1[row*MatLength+k] * mat2[k*MatLength+col]
+				}
+			}
+		}
+		m.Print("For")
+		for i := range M4x4 {
+			if wantMat[i] != m[i] {
+				t.Errorf("Mismatch want %v got %v", wantMat, m)
+			}
+		}
+	})
+
+	t.Run("byVec3For", func(t *testing.T) {
+		v4 := [MatLength]float32{vec.X, vec.Y, vec.Z, 1.0}
+		result := [MatLength]float32{0.0, 0.0, 0.0, 0.0}
+
+		for row := range MatLength {
+			for col := range MatLength {
+				result[row] += v4[col] * mat1[row*MatLength+col]
+			}
+		}
+
+		if result[0] != wantVec.X || result[1] != wantVec.Y || result[2] != wantVec.Z {
+			t.Errorf("want %v, got %v", wantVec, result)
+		}
+	})
+
+	t.Run("byVec3Unr", func(t *testing.T) {
+		got := NewVec3(
+			(vec.X*mat1[X0Y0])+(vec.Y*mat1[X1Y0])+(vec.Z*mat1[X2Y0])+(1*mat1[X3Y0]),
+			(vec.X*mat1[X0Y1])+(vec.Y*mat1[X1Y1])+(vec.Z*mat1[X2Y1])+(1*mat1[X3Y1]),
+			(vec.X*mat1[X0Y2])+(vec.Y*mat1[X1Y2])+(vec.Z*mat1[X2Y2])+(1*mat1[X3Y2]),
+		)
+		if got.X != wantVec.X || got.Y != wantVec.Y || got.Z != wantVec.Z {
+			t.Errorf("want %v, got %v", wantVec, got)
+		}
+	})
+}
