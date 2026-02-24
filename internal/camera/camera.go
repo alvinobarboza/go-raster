@@ -34,7 +34,7 @@ type Camera struct {
 func NewCamera(w, h uint, sensitivity, zNear, zFar, fovAngle float32, pos, rot transforms.Vec3) *Camera {
 	c := Camera{
 		FovAngle:    fovAngle,
-		FovScaling:  transforms.FovScaling(fovAngle),
+		FovScaling:  FovScaling(fovAngle),
 		ZNear:       zNear,
 		ZFar:        zFar,
 		Sensitivity: sensitivity,
@@ -209,4 +209,8 @@ func (c *Camera) CalculateFrustum() {
 	c.Frustum.Planes[LeftPn] = NewPlane(camPos, camUp.Cross(frontMultFar.Subtract(camRight.Scale(halfHSide))))
 	c.Frustum.Planes[TopPn] = NewPlane(camPos, frontMultFar.Subtract(camUp.Scale(halfVSide)).Cross(camRight))
 	c.Frustum.Planes[BottomPn] = NewPlane(camPos, camRight.Cross(frontMultFar.Add(camUp.Scale(halfVSide))))
+}
+
+func FovScaling(angle float32) float32 {
+	return float32(1 / math.Tan(float64(angle*transforms.DegToRad/2)))
 }
