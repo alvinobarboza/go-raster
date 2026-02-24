@@ -377,3 +377,7 @@ func Floor32(x float32) float32 {
 	}
 	return float32(i)
 }
+
+func Ceil32(x float32) float32 {
+	return -Floor32(-x)
+}

@@ -94,8 +94,8 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 ClippedVertex, t *Texture)
 
 	minX := Floor32(Minf(v0.X, Minf(v1.X, v2.X)))
 	minY := Floor32(Minf(v0.Y, Minf(v1.Y, v2.Y)))
-	maxX := float32(math.Ceil(float64(Maxf(v0.X, Maxf(v1.X, v2.X)))))
-	maxY := float32(math.Ceil(float64(Maxf(v0.Y, Maxf(v1.Y, v2.Y)))))
+	maxX := Ceil32(Maxf(v0.X, Maxf(v1.X, v2.X)))
+	maxY := Ceil32(Maxf(v0.Y, Maxf(v1.Y, v2.Y)))
 
 	deltaW0Col := v0.Y - v1.Y
 	deltaW1Col := v1.Y - v2.Y
