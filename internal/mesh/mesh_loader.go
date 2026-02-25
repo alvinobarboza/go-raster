@@ -2,6 +2,7 @@ package mesh
 
 import (
 	"bufio"
+	"image"
 	"image/color"
 	"io"
 	"log"
@@ -159,16 +160,40 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 			tris[i].U3 = tempUV
 			tris[i].N3 = tempN
 		}
-
-		tris[i].Color = color.RGBA{
-			A: 255,
-			R: uint8(r),
-			G: uint8(g),
-			B: uint8(b),
-		}
 	}
 
 	return NewMesh(verts, normals, uvs, tris, texture), nil
+}
+
+func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {
+	img, _, err := image.Decode(file)
+
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+
+	pixels := make([]color.RGBA, 0)
+	// Upside down, since render is upside down
+	for y := range height {
+		yu := height - y - 1
+		for x := range width {
+			r, g, b, a := img.At(x, yu).RGBA()
+
+			// From alpha pre-multiplied values
+			// 0xFF00 > 0x00FF > 0xFF
+			pixels = append(pixels, color.RGBA{
+				R: uint8(r >> 8),
+				G: uint8(g >> 8),
+				B: uint8(b >> 8),
+				A: uint8(a >> 8),
+			})
+		}
+	}
+
+	return pixels, width, height, nil
 }
 
 func LoadTexture(path string) (*Texture, error) {

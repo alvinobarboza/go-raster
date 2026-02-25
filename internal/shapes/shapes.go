@@ -52,18 +52,18 @@ var vertsCube = []transforms.Vec3{
 }
 
 var trisCube = []mesh.Triangle{
-	{V1: 0, V2: 1, V3: 2, Color: Red},
-	{V1: 0, V2: 2, V3: 3, Color: Red},
-	{V1: 4, V2: 0, V3: 3, Color: Green},
-	{V1: 4, V2: 3, V3: 7, Color: Green},
-	{V1: 5, V2: 4, V3: 7, Color: Blue},
-	{V1: 5, V2: 7, V3: 6, Color: Blue},
-	{V1: 1, V2: 5, V3: 6, Color: Yellow},
-	{V1: 1, V2: 6, V3: 2, Color: Yellow},
-	{V1: 4, V2: 5, V3: 1, Color: Purple},
-	{V1: 4, V2: 1, V3: 0, Color: Purple},
-	{V1: 2, V2: 6, V3: 7, Color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
-	{V1: 2, V2: 7, V3: 3, Color: color.RGBA{A: 255, R: 0, G: 255, B: 255}},
+	{V1: 0, V2: 1, V3: 2},
+	{V1: 0, V2: 2, V3: 3},
+	{V1: 4, V2: 0, V3: 3},
+	{V1: 4, V2: 3, V3: 7},
+	{V1: 5, V2: 4, V3: 7},
+	{V1: 5, V2: 7, V3: 6},
+	{V1: 1, V2: 5, V3: 6},
+	{V1: 1, V2: 6, V3: 2},
+	{V1: 4, V2: 5, V3: 1},
+	{V1: 4, V2: 1, V3: 0},
+	{V1: 2, V2: 6, V3: 7},
+	{V1: 2, V2: 7, V3: 3},
 }
 
 // CUBE === end
@@ -89,7 +89,6 @@ func NewTriangle(pos, scale, rotation transforms.Vec3) mesh.Model {
 			V1: 0, V2: 1, V3: 2,
 			U1: 0, U2: 1, U3: 2,
 			N1: 0, N2: 0, N3: 0,
-			Color: Red,
 		},
 	}
 	tris_normal := []transforms.Vec3{
