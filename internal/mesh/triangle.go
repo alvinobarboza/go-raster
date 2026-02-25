@@ -29,3 +29,12 @@ type FullTriangle struct {
 	V3      ClippedVertex
 	Texture *Texture
 }
+
+func NewFullTriangle(v1, v2, v3 ClippedVertex, t *Texture) FullTriangle {
+	return FullTriangle{
+		V1:      v1,
+		V2:      v2,
+		V3:      v3,
+		Texture: t,
+	}
+}

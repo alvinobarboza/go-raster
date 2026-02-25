@@ -118,33 +118,36 @@ type TilesTest struct {
 func TestTileGen(t *testing.T) {
 	t.Run("Gen", func(t *testing.T) {
 		want := []uint8{
-			0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-			0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-			3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5,
-			3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5,
-			6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8,
-			6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		}
 		const w, h = 12, 6
 
 		got := [w * h]uint8{}
 
-		til := 9
-		tw, th := 4, 2
+		til := 10
+		tw, th := (w*h/til)/2, (w*h/til)/2
+		fmt.Println(th, tw)
 
 		tiles := make([]TilesTest, 0)
 
 		y := 0
 		twAcc := 0
-		for i := range til {
+		for range til {
 
-			tiles = append(tiles, TilesTest{
-				char: uint8(i),
+			tt := TilesTest{
+				char: 1,
 				w:    tw, h: th,
 				fW: w, fH: h,
 				offsetW: twAcc,
 				offsetH: th * y,
-			})
+			}
+			fmt.Printf("%+v\n", tt)
+			tiles = append(tiles, tt)
 
 			twAcc += tw
 
@@ -159,6 +162,7 @@ func TestTileGen(t *testing.T) {
 				for x := range tt.w {
 					index := (y+tt.offsetH)*tt.fW + (x + tt.offsetW)
 					if index >= len(got) {
+						fmt.Println("jumped", index)
 						continue
 					}
 					got[index] = tt.char

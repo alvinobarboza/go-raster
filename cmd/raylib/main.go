@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	ScreenWidth  = 1280
-	ScreenHeight = 720
+	ScreenWidth  = 1600
+	ScreenHeight = 900
 
 	NearPlane = 0.2
 	FarPlane  = 25
@@ -39,16 +39,11 @@ func main() {
 		NearPlane,
 		FarPlane,
 		fov,
-		transforms.NewVec3(0, 2, -0.7),
-		transforms.NewVec3(-30, 0, 0),
+		transforms.NewVec3(0.43, 1.4, 0.6),
+		transforms.NewVec3(-40, 40, 0),
 	)
 
 	s := scene.NewScene(camera)
-
-	wp := renderer.NewWorkerPool(4)
-	renderer := renderer.NewRenderer(wp)
-
-	renderer.AddActiveScene(s)
 
 	models, err := scene.LoadSceneFromJSON("./scene.json")
 	if err != nil {
@@ -58,6 +53,9 @@ func main() {
 	for i := range models {
 		s.AddMesh(&models[i])
 	}
+
+	renderer := renderer.NewRenderer(10)
+	renderer.AddActiveScene(s)
 
 	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))
 	// triangle.mesh.texture = LoadDefaultTexture()

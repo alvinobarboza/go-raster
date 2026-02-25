@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 	"sync"
@@ -13,23 +14,69 @@ import (
 )
 
 type Renderer struct {
-	scene      *scene.Scene
-	wp         *WorkerPool
-	wg         sync.WaitGroup
-	outputList []mesh.ClippedVertex
-	inputList  []mesh.ClippedVertex
+	scene   *scene.Scene
+	wg      sync.WaitGroup
+	indexes chan int
+
+	sHoutputList    []mesh.ClippedVertex
+	sHinputList     []mesh.ClippedVertex
+	trianglesBuffer []mesh.FullTriangle
+
+	tiles []*ScreenTile
 }
 
-func NewRenderer(wp *WorkerPool) *Renderer {
-	return &Renderer{
-		outputList: make([]mesh.ClippedVertex, 9),
-		inputList:  make([]mesh.ClippedVertex, 9),
-		wp:         wp,
+// init after loading models,
+// otherwise triangle buffer will have 0 size
+// TODO -> somehow get around this
+func NewRenderer(threads uint) *Renderer {
+	r := &Renderer{
+		sHoutputList: make([]mesh.ClippedVertex, 9),
+		sHinputList:  make([]mesh.ClippedVertex, 9),
+		indexes:      make(chan int, threads),
+		tiles:        make([]*ScreenTile, threads),
 	}
+
+	for range threads {
+		go r.renderTriangleParallel()
+	}
+
+	return r
 }
 
 func (r *Renderer) AddActiveScene(s *scene.Scene) {
 	r.scene = s
+	biggestTriCount := 0
+	for _, o := range s.Objects {
+		if len(o.Mesh.Tris) > biggestTriCount {
+			biggestTriCount = len(o.Mesh.Tris) * 9
+		}
+	}
+
+	tileWidth := float32(s.ActiveCam.Width*s.ActiveCam.Height/uint(len(r.tiles))) / 2
+	tileHeight := tileWidth
+
+	y := float32(0)
+	acc := float32(0)
+	for i := range r.tiles {
+		r.tiles[i] = NewScreenTile(
+			tileWidth,
+			tileHeight,
+			float32(s.ActiveCam.Width),
+			float32(s.ActiveCam.Height),
+			acc,
+			tileHeight*y,
+			biggestTriCount)
+
+		acc += tileWidth
+
+		if acc >= float32(s.ActiveCam.Width) {
+			acc = 0
+			y++
+		}
+		fmt.Printf("%+v\n", r.tiles[i])
+	}
+
+	r.trianglesBuffer = make([]mesh.FullTriangle, biggestTriCount)
 }
 
 func (r *Renderer) DrawLine(a, b camera.ScreenPoint, cl color.RGBA) {
@@ -79,6 +126,159 @@ func (r *Renderer) DrawWireframeTriangle(v1, v2, v3 mesh.ClippedVertex) {
 	r.DrawLine(a, b, shapes.Black)
 	r.DrawLine(b, c, shapes.Black)
 	r.DrawLine(c, a, shapes.Black)
+}
+
+func (r *Renderer) renderTriangleParallel() {
+	for i := range r.indexes {
+		triangles := r.tiles[i].Triangles()
+		mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
+
+		for _, tri := range triangles {
+			va := r.scene.ActiveCam.ProjectVertexToNDC(tri.V1.V)
+			vb := r.scene.ActiveCam.ProjectVertexToNDC(tri.V2.V)
+			vc := r.scene.ActiveCam.ProjectVertexToNDC(tri.V3.V)
+
+			depthA := 1 / tri.V1.V.Z
+			depthB := 1 / tri.V2.V.Z
+			depthC := 1 / tri.V3.V.Z
+
+			uv1z := tri.V1.U.Scale(depthA)
+			uv2z := tri.V2.U.Scale(depthB)
+			uv3z := tri.V3.U.Scale(depthC)
+
+			v0 := r.scene.ActiveCam.NDCtoScreen(va)
+			v1 := r.scene.ActiveCam.NDCtoScreen(vb)
+			v2 := r.scene.ActiveCam.NDCtoScreen(vc)
+
+			minX := maths.Floor32(maths.Minf(v0.X, maths.Minf(v1.X, v2.X)))
+			minY := maths.Floor32(maths.Minf(v0.Y, maths.Minf(v1.Y, v2.Y)))
+			maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
+			maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
+
+			deltaW0Col := v0.Y - v1.Y
+			deltaW1Col := v1.Y - v2.Y
+			deltaW2Col := v2.Y - v0.Y
+
+			deltaW0Row := v1.X - v0.X
+			deltaW1Row := v2.X - v1.X
+			deltaW2Row := v0.X - v2.X
+
+			bias0 := float32(0)
+			bias1 := float32(0)
+			bias2 := float32(0)
+
+			if v0.IsTopOrLeft(v1) {
+				bias0 = -0.0001
+			}
+
+			if v1.IsTopOrLeft(v2) {
+				bias1 = -0.0001
+			}
+
+			if v2.IsTopOrLeft(v0) {
+				bias2 = -0.0001
+			}
+
+			area := camera.EdgeCross(v0, v1, v2)
+			area = 1 / area
+
+			// check to only run in tile bounds
+			cMinY := maths.Maxf(minY, mnY)
+			cMaxY := maths.Minf(maxY, mxY)
+
+			cMinX := maths.Maxf(minX, mnX)
+			cMaxX := maths.Minf(maxX, mxX)
+
+			// fmt.Println("tile:", i, mnX, mnY, mxX, mxY)
+			// fmt.Println("tri:", i, minX, minY, maxX, maxY)
+			// fmt.Println("Calc:", i, cMinX, cMinY, cMaxX, cMaxY)
+
+			// pixel's center
+			p := camera.ScreenPoint{X: cMinX + 0.5, Y: cMinY + 0.5}
+
+			w0Row := camera.EdgeCross(v0, v1, p) + bias0
+			w1Row := camera.EdgeCross(v1, v2, p) + bias1
+			w2Row := camera.EdgeCross(v2, v0, p) + bias2
+
+			/*
+					  v0 (Top)
+					  /\
+					 /  \
+					/    \    <-- The distance from this edge (v0-v1)
+				   /      \       towards v2 is w0.
+				  /   P    \
+				 /    |     \
+				v1 ---|------v2
+					  ^
+					  |
+				The distance from this edge (v1-v2)
+				towards v0 is w1.
+				w1 = v1 -> v2 distance to v0 = a = tri.v1
+				w2 = v2 -> v0 distance to v1 = b = tri.v2
+				w0 = v0 -> v1 distance to v2 = c = tri.v3
+			*/
+
+			for y := cMinY; y <= cMaxY; y++ {
+				w0 := w0Row
+				w1 := w1Row
+				w2 := w2Row
+
+				for x := cMinX; x <= cMaxX; x++ {
+					if w0 >= 0 && w1 >= 0 && w2 >= 0 {
+						alpha := w1 * area
+						beta := w2 * area
+						gama := w0 * area
+
+						depth := depthA*alpha + depthB*beta + depthC*gama
+
+						xx, yy := uint(x), uint(y)
+						if r.scene.ActiveCam.DepthPass(xx, yy, depth) {
+							uv1 := uv1z.Scale(alpha)
+							uv2 := uv2z.Scale(beta)
+							uv3 := uv3z.Scale(gama)
+
+							uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
+							pColor := tri.Texture.TexelColor(uvCoord)
+
+							r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)
+						}
+					}
+					w0 += deltaW0Col
+					w1 += deltaW1Col
+					w2 += deltaW2Col
+				}
+
+				w0Row += deltaW0Row
+				w1Row += deltaW1Row
+				w2Row += deltaW2Row
+			}
+		}
+
+		r.wg.Done()
+	}
+}
+
+func (r *Renderer) assignTrianglesToTiles() {
+	for _, t := range r.trianglesBuffer {
+		va := r.scene.ActiveCam.ProjectVertexToNDC(t.V1.V)
+		vb := r.scene.ActiveCam.ProjectVertexToNDC(t.V2.V)
+		vc := r.scene.ActiveCam.ProjectVertexToNDC(t.V3.V)
+
+		v0 := r.scene.ActiveCam.NDCtoScreen(va)
+		v1 := r.scene.ActiveCam.NDCtoScreen(vb)
+		v2 := r.scene.ActiveCam.NDCtoScreen(vc)
+
+		minX := maths.Floor32(maths.Minf(v0.X, maths.Minf(v1.X, v2.X)))
+		minY := maths.Floor32(maths.Minf(v0.Y, maths.Minf(v1.Y, v2.Y)))
+		maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
+		maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
+
+		for _, st := range r.tiles {
+			if st.TileTriangleCollision(minX, minY, maxX, maxY) {
+				st.AddTriangle(t)
+			}
+		}
+	}
 }
 
 func (r *Renderer) RenderTriangle(vert1, vert2, vert3 mesh.ClippedVertex, t *mesh.Texture) {
@@ -201,6 +401,7 @@ func (r *Renderer) renderMeshs() {
 			continue
 		}
 
+		r.trianglesBuffer = r.trianglesBuffer[:0]
 		for _, t := range o.Mesh.Tris {
 			o.Mesh.VertsWorld[t.V1] = matTransform.MultiplyByVec3(o.Mesh.Verts[t.V1])
 			o.Mesh.VertsWorld[t.V2] = matTransform.MultiplyByVec3(o.Mesh.Verts[t.V2])
@@ -232,25 +433,25 @@ func (r *Renderer) renderMeshs() {
 				U: o.Mesh.UV[t.U3],
 			}
 
-			r.outputList = r.outputList[:0]
-			r.inputList = r.inputList[:3]
+			r.sHoutputList = r.sHoutputList[:0]
+			r.sHinputList = r.sHinputList[:3]
 
-			r.outputList = append(r.outputList, v1)
-			r.outputList = append(r.outputList, v2)
-			r.outputList = append(r.outputList, v3)
+			r.sHoutputList = append(r.sHoutputList, v1)
+			r.sHoutputList = append(r.sHoutputList, v2)
+			r.sHoutputList = append(r.sHoutputList, v3)
 
 			// Sutherland–Hodgman algorithm
 			for _, plane := range r.scene.ActiveCam.Frustum.Planes {
-				r.inputList, r.outputList = r.outputList, r.inputList[:0]
+				r.sHinputList, r.sHoutputList = r.sHoutputList, r.sHinputList[:0]
 
 				prevI := 0
-				for i := range len(r.inputList) {
+				for i := range len(r.sHinputList) {
 					prevI = i - 1
 					if prevI < 0 {
-						prevI = len(r.inputList) - 1
+						prevI = len(r.sHinputList) - 1
 					}
-					currentPoint := r.inputList[i]
-					prevPoint := r.inputList[prevI]
+					currentPoint := r.sHinputList[i]
+					prevPoint := r.sHinputList[prevI]
 
 					cp := plane.SignedDistanceToPoint(currentPoint.V)
 					pp := plane.SignedDistanceToPoint(prevPoint.V)
@@ -263,9 +464,9 @@ func (r *Renderer) renderMeshs() {
 								N: currentPoint.N.LerpTo(prevPoint.N, ratio),
 								U: currentPoint.U.LerpTo(prevPoint.U, ratio),
 							}
-							r.outputList = append(r.outputList, intersection)
+							r.sHoutputList = append(r.sHoutputList, intersection)
 						}
-						r.outputList = append(r.outputList, currentPoint)
+						r.sHoutputList = append(r.sHoutputList, currentPoint)
 					} else if pp > 0 {
 						ratio := cp / (cp - pp)
 						intersection := mesh.ClippedVertex{
@@ -273,28 +474,52 @@ func (r *Renderer) renderMeshs() {
 							N: currentPoint.N.LerpTo(prevPoint.N, ratio),
 							U: currentPoint.U.LerpTo(prevPoint.U, ratio),
 						}
-						r.outputList = append(r.outputList, intersection)
+						r.sHoutputList = append(r.sHoutputList, intersection)
 					}
 				}
 			}
 
-			if len(r.outputList) > 2 {
-				for i := 1; i < len(r.outputList)-1; i++ {
-					r.RenderTriangle(
-						r.outputList[0],
-						r.outputList[i],
-						r.outputList[i+1],
-						o.Mesh.Texture,
+			if len(r.sHoutputList) > 2 {
+				for i := 1; i < len(r.sHoutputList)-1; i++ {
+					r.trianglesBuffer = append(
+						r.trianglesBuffer,
+						mesh.NewFullTriangle(
+							r.sHoutputList[0],
+							r.sHoutputList[i],
+							r.sHoutputList[i+1],
+							o.Mesh.Texture,
+						),
 					)
-					if r.scene.ActiveCam.RenderWire {
-						r.DrawWireframeTriangle(
-							r.outputList[0],
-							r.outputList[i],
-							r.outputList[i+1],
-						)
-					}
+
+					// r.RenderTriangle(
+					// 	r.sHoutputList[0],
+					// 	r.sHoutputList[i],
+					// 	r.sHoutputList[i+1],
+					// 	o.Mesh.Texture,
+					// )
+					// if r.scene.ActiveCam.RenderWire {
+					// 	r.DrawWireframeTriangle(
+					// 		r.sHoutputList[0],
+					// 		r.sHoutputList[i],
+					// 		r.sHoutputList[i+1],
+					// 	)
+					// }
 				}
 			}
+		}
+
+		if len(r.trianglesBuffer) > 0 {
+			for i := range r.tiles {
+				r.tiles[i].ResetBuff()
+			}
+
+			r.assignTrianglesToTiles()
+
+			r.wg.Add(len(r.tiles))
+			for i := range r.tiles {
+				r.indexes <- i
+			}
+			r.wg.Wait()
 		}
 		// break
 	}
