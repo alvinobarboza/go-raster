@@ -1,1 +1,0 @@
-go build -o dist/raster.exe ./cmd/ebiten ; ./dist/raster.exe
