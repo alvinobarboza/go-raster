@@ -129,10 +129,10 @@ func (r *Renderer) drawTileBoundaries() {
 
 		if len(triangles) > 0 {
 			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
-			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mxY}, shapes.DarkPurple)
-			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mxY}, shapes.DarkPurple)
-			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mnY}, shapes.DarkPurple)
-			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mnY}, shapes.DarkPurple)
+			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mxY}, shapes.White)
+			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mxY}, shapes.White)
+			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mnY}, shapes.White)
+			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mnY}, shapes.White)
 		}
 	}
 }

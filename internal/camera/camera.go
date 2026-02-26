@@ -68,7 +68,7 @@ func (c *Camera) UpdateCanvasSize(w, h uint) {
 
 func (c *Camera) ClearCanvas() {
 	for i := range len(c.Canvas) {
-		c.Canvas[i] = shapes.DarkGray
+		c.Canvas[i] = shapes.Black
 		c.DepthBuffer[i] = 0
 	}
 }
