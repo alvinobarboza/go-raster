@@ -143,7 +143,8 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 		triangles := r.tiles[i].Triangles()
 		mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
 
-		for _, tri := range triangles {
+		for _, i := range triangles {
+			tri := r.trianglesBuffer[i]
 			va := r.scene.ActiveCam.ProjectVertexToNDC(tri.V1.V)
 			vb := r.scene.ActiveCam.ProjectVertexToNDC(tri.V2.V)
 			vc := r.scene.ActiveCam.ProjectVertexToNDC(tri.V3.V)
@@ -272,7 +273,7 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 }
 
 func (r *Renderer) assignTrianglesToTiles() {
-	for _, t := range r.trianglesBuffer {
+	for i, t := range r.trianglesBuffer {
 		va := r.scene.ActiveCam.ProjectVertexToNDC(t.V1.V)
 		vb := r.scene.ActiveCam.ProjectVertexToNDC(t.V2.V)
 		vc := r.scene.ActiveCam.ProjectVertexToNDC(t.V3.V)
@@ -288,7 +289,7 @@ func (r *Renderer) assignTrianglesToTiles() {
 
 		for _, st := range r.tiles {
 			if st.TileTriangleCollision(minX, minY, maxX, maxY) {
-				st.AddTriangle(t)
+				st.AddTriangle(i)
 			}
 		}
 	}

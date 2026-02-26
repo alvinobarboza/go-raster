@@ -1,9 +1,5 @@
 package renderer
 
-import (
-	"github.com/alvinobarboza/go-raster/internal/mesh"
-)
-
 type ScreenTile struct {
 	Width, Height float32
 	OffW, OffH    float32
@@ -13,7 +9,7 @@ type ScreenTile struct {
 	minX, minY float32
 	maxX, maxY float32
 
-	trianglesBuffer []mesh.FullTriangle
+	trianglesBuffer []int
 }
 
 func NewScreenTile(w, h, fw, fh, offx, offy float32, buffSize int) *ScreenTile {
@@ -98,22 +94,22 @@ func (s *ScreenTile) UpdateTileSize(w, h, fw, fh, offx, offy float32) {
 }
 
 func (s *ScreenTile) UpdateBufferSize(size int) {
-	s.trianglesBuffer = make([]mesh.FullTriangle, size)
+	s.trianglesBuffer = make([]int, size)
 }
 
 func (s *ScreenTile) TileTriangleCollision(minX, minY, maxX, maxY float32) bool {
 	return s.minX <= maxX && s.maxX >= minX && s.minY <= maxY && s.maxY >= minY
 }
 
-func (s *ScreenTile) AddTriangle(t mesh.FullTriangle) {
-	s.trianglesBuffer = append(s.trianglesBuffer, t)
+func (s *ScreenTile) AddTriangle(index int) {
+	s.trianglesBuffer = append(s.trianglesBuffer, index)
 }
 
 func (s *ScreenTile) ResetBuff() {
 	s.trianglesBuffer = s.trianglesBuffer[:0]
 }
 
-func (s *ScreenTile) Triangles() []mesh.FullTriangle {
+func (s *ScreenTile) Triangles() []int {
 	return s.trianglesBuffer
 }
 
