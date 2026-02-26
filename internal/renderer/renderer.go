@@ -125,9 +125,7 @@ func (r *Renderer) DrawWireframeTriangle(v1, v2, v3 mesh.ClippedVertex) {
 
 func (r *Renderer) drawTileBoundaries() {
 	for i := range r.tiles {
-		triangles := r.tiles[i].Triangles()
-
-		if len(triangles) > 0 {
+		if r.tiles[i].IsActive {
 			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
 			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mxY}, shapes.White)
 			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mxY}, shapes.White)
@@ -287,9 +285,10 @@ func (r *Renderer) assignTrianglesToTiles() {
 		maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
 		maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
 
-		for _, st := range r.tiles {
-			if st.TileTriangleCollision(minX, minY, maxX, maxY) {
-				st.AddTriangle(i)
+		for j := range r.tiles {
+			if r.tiles[j].TileTriangleCollision(minX, minY, maxX, maxY) {
+				r.tiles[j].AddTriangle(i)
+				r.tiles[j].IsActive = true
 			}
 		}
 	}
@@ -532,9 +531,6 @@ func (r *Renderer) renderMeshs() {
 				}
 
 				r.assignTrianglesToTiles()
-				if r.RenderTileBoundaries {
-					r.drawTileBoundaries()
-				}
 
 				r.wg.Add(len(r.tiles))
 				for i := range r.tiles {
@@ -549,7 +545,13 @@ func (r *Renderer) renderMeshs() {
 
 func (r *Renderer) Render() {
 	r.scene.ActiveCam.ClearCanvas()
+	for i := range r.tiles {
+		r.tiles[i].IsActive = false
+	}
 	r.renderMeshs()
+	if r.RenderTileBoundaries {
+		r.drawTileBoundaries()
+	}
 }
 
 func (r *Renderer) ToggleMultithreaded() {

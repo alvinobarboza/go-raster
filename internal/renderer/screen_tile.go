@@ -10,6 +10,8 @@ type ScreenTile struct {
 	maxX, maxY float32
 
 	trianglesBuffer []int
+
+	IsActive bool
 }
 
 func NewScreenTile(w, h, fw, fh, offx, offy float32, buffSize int) *ScreenTile {
