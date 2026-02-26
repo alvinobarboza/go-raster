@@ -25,6 +25,8 @@ type Renderer struct {
 
 	tiles []*ScreenTile
 
+	biggestTriCount int
+
 	RenderTileBoundaries     bool
 	RenderTriangleBoundaries bool
 	RenderMultithreaded      bool
@@ -50,23 +52,26 @@ func NewRenderer(threads uint) *Renderer {
 	return r
 }
 
-func (r *Renderer) AddActiveScene(s *scene.Scene) {
-	r.scene = s
-	biggestTriCount := 0
-	for _, o := range s.Objects {
-		if len(o.Mesh.Tris) > biggestTriCount {
-			biggestTriCount = len(o.Mesh.Tris) * 9
-		}
-	}
-
+func (r *Renderer) UpdateTiles() {
 	r.tiles = NewTileSet(
 		float32(r.scene.ActiveCam.Width),
 		float32(r.scene.ActiveCam.Height),
-		float32(r.scene.ActiveCam.Width)/4,
-		biggestTriCount,
+		float32(120),
+		r.biggestTriCount,
 	)
+}
 
-	r.trianglesBuffer = make([]mesh.FullTriangle, biggestTriCount)
+func (r *Renderer) AddActiveScene(s *scene.Scene) {
+	r.scene = s
+	for _, o := range s.Objects {
+		if len(o.Mesh.Tris) > r.biggestTriCount {
+			r.biggestTriCount = len(o.Mesh.Tris) * 9
+		}
+	}
+
+	r.UpdateTiles()
+
+	r.trianglesBuffer = make([]mesh.FullTriangle, r.biggestTriCount)
 }
 
 func (r *Renderer) DrawLine(a, b camera.ScreenPoint, cl color.RGBA) {

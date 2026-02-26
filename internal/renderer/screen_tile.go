@@ -24,16 +24,23 @@ func NewScreenTile(w, h, fw, fh, offx, offy float32, buffSize int) *ScreenTile {
 	return s
 }
 
-func NewTileSet(w, h, tileLength float32, buffSize int) []*ScreenTile {
-	tiles := make([]*ScreenTile, 0)
-
+func RecalculateTiles(w, h, tileLength float32, buffSize int, tiles []*ScreenTile) []*ScreenTile {
 	wOffSet := float32(0)
 	hOffSet := float32(0)
 	tW, tH := tileLength, tileLength
+
+	i := 0
+	isNew := len(tiles) == 0
+
 	for {
-		tt := NewScreenTile(tW, tH, w, h, wOffSet, hOffSet, buffSize)
-		// fmt.Printf("%+v\n", tt)
-		tiles = append(tiles, tt)
+		if !isNew && i < len(tiles) {
+			tiles[i].UpdateTileSize(tW, tH, w, h, wOffSet, hOffSet)
+			i++
+		} else {
+			tt := NewScreenTile(tW, tH, w, h, wOffSet, hOffSet, buffSize)
+			// fmt.Printf("%+v\n", tt)
+			tiles = append(tiles, tt)
+		}
 
 		wOffSet += tileLength
 		offOffSetW := wOffSet + tileLength
@@ -61,10 +68,19 @@ func NewTileSet(w, h, tileLength float32, buffSize int) []*ScreenTile {
 		}
 
 		if hOffSet >= h || wOffSet >= w {
+			if i > 0 {
+				tiles = tiles[:i]
+			}
 			break
 		}
 	}
 
+	return tiles
+}
+
+func NewTileSet(w, h, tileLength float32, buffSize int) []*ScreenTile {
+	tiles := make([]*ScreenTile, 0)
+	tiles = RecalculateTiles(w, h, tileLength, buffSize, tiles)
 	return tiles
 }
 

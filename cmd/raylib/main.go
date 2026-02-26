@@ -87,6 +87,7 @@ func main() {
 			rl.ImageResize(img, int32(camera.Width), int32(camera.Height))
 			rl.UnloadTexture(renderTexture)
 			renderTexture = rl.LoadTextureFromImage(img)
+			renderer.UpdateTiles()
 		}
 
 		if rl.IsKeyPressed(rl.KeyTab) {
