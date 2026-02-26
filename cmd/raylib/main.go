@@ -54,7 +54,7 @@ func main() {
 		s.AddMesh(&models[i])
 	}
 
-	renderer := renderer.NewRenderer(6)
+	renderer := renderer.NewRenderer(8)
 	renderer.AddActiveScene(s)
 
 	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))
@@ -76,7 +76,7 @@ func main() {
 	leftRightCam := float32(0.0)
 	upDownCam := float32(0.0)
 
-	rl.SetTargetFPS(60)
+	rl.SetTargetFPS(90)
 	rl.DisableCursor()
 	cursorEnabled := false
 
@@ -167,6 +167,18 @@ func main() {
 
 		if rl.IsKeyPressed(rl.KeyX) {
 			camera.ToggleWireRender()
+		}
+
+		if rl.IsKeyPressed(rl.KeyT) {
+			renderer.ToggleTriangleBoundaryRender()
+		}
+
+		if rl.IsKeyPressed(rl.KeyM) {
+			renderer.ToggleMultithreaded()
+		}
+
+		if rl.IsKeyPressed(rl.KeyB) {
+			renderer.ToggleTileBoundaryRender()
 		}
 
 		mouseDelta := rl.GetMouseDelta()

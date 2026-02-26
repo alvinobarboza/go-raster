@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 	"sync"
@@ -15,6 +16,7 @@ import (
 type Renderer struct {
 	scene   *scene.Scene
 	wg      sync.WaitGroup
+	mt      sync.Mutex
 	indexes chan int
 
 	sHoutputList    []mesh.ClippedVertex
@@ -22,6 +24,10 @@ type Renderer struct {
 	trianglesBuffer []mesh.FullTriangle
 
 	tiles []*ScreenTile
+
+	RenderTileBoundaries     bool
+	RenderTriangleBoundaries bool
+	RenderMultithreaded      bool
 }
 
 // init after loading models,
@@ -29,13 +35,16 @@ type Renderer struct {
 // TODO -> somehow get around this
 func NewRenderer(threads uint) *Renderer {
 	r := &Renderer{
-		sHoutputList: make([]mesh.ClippedVertex, 9),
-		sHinputList:  make([]mesh.ClippedVertex, 9),
-		indexes:      make(chan int, threads),
+		sHoutputList:             make([]mesh.ClippedVertex, 9),
+		sHinputList:              make([]mesh.ClippedVertex, 9),
+		indexes:                  make(chan int, threads),
+		RenderTileBoundaries:     false,
+		RenderTriangleBoundaries: false,
+		RenderMultithreaded:      true,
 	}
 
-	for range threads {
-		go r.renderTriangleParallel()
+	for i := range threads {
+		go r.renderTriangleParallel(i)
 	}
 
 	return r
@@ -109,7 +118,22 @@ func (r *Renderer) DrawWireframeTriangle(v1, v2, v3 mesh.ClippedVertex) {
 	r.DrawLine(c, a, shapes.Black)
 }
 
-func (r *Renderer) renderTriangleParallel() {
+func (r *Renderer) drawTileBoundaries() {
+	for i := range r.tiles {
+		triangles := r.tiles[i].Triangles()
+
+		if len(triangles) > 0 {
+			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
+			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mxY}, shapes.DarkPurple)
+			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mxY}, shapes.DarkPurple)
+			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mnY}, shapes.DarkPurple)
+			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mnY}, shapes.DarkPurple)
+		}
+	}
+}
+
+func (r *Renderer) renderTriangleParallel(id uint) {
+	fmt.Println("Thread ID:", id)
 	for i := range r.indexes {
 		triangles := r.tiles[i].Triangles()
 		mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
@@ -170,9 +194,12 @@ func (r *Renderer) renderTriangleParallel() {
 			cMinX := maths.Maxf(minX, mnX)
 			cMaxX := maths.Minf(maxX, mxX)
 
-			// fmt.Println("tile:", i, mnX, mnY, mxX, mxY)
-			// fmt.Println("tri:", i, minX, minY, maxX, maxY)
-			// fmt.Println("Calc:", i, cMinX, cMinY, cMaxX, cMaxY)
+			if r.RenderTriangleBoundaries {
+				r.DrawLine(camera.ScreenPoint{X: cMinX, Y: cMinY}, camera.ScreenPoint{X: cMinX, Y: cMaxY}, shapes.DarkGreen)
+				r.DrawLine(camera.ScreenPoint{X: cMinX, Y: cMaxY}, camera.ScreenPoint{X: cMaxX, Y: cMaxY}, shapes.DarkGreen)
+				r.DrawLine(camera.ScreenPoint{X: cMaxX, Y: cMaxY}, camera.ScreenPoint{X: cMaxX, Y: cMinY}, shapes.DarkGreen)
+				r.DrawLine(camera.ScreenPoint{X: cMaxX, Y: cMinY}, camera.ScreenPoint{X: cMinX, Y: cMinY}, shapes.DarkGreen)
+			}
 
 			// pixel's center
 			p := camera.ScreenPoint{X: cMinX + 0.5, Y: cMinY + 0.5}
@@ -462,46 +489,54 @@ func (r *Renderer) renderMeshs() {
 
 			if len(r.sHoutputList) > 2 {
 				for i := 1; i < len(r.sHoutputList)-1; i++ {
-					// r.trianglesBuffer = append(
-					// 	r.trianglesBuffer,
-					// 	mesh.NewFullTriangle(
-					// 		r.sHoutputList[0],
-					// 		r.sHoutputList[i],
-					// 		r.sHoutputList[i+1],
-					// 		o.Mesh.Texture,
-					// 	),
-					// )
+					if r.RenderMultithreaded {
+						r.trianglesBuffer = append(
+							r.trianglesBuffer,
+							mesh.NewFullTriangle(
+								r.sHoutputList[0],
+								r.sHoutputList[i],
+								r.sHoutputList[i+1],
+								o.Mesh.Texture,
+							),
+						)
+					} else {
+						r.RenderTriangle(
+							r.sHoutputList[0],
+							r.sHoutputList[i],
+							r.sHoutputList[i+1],
+							o.Mesh.Texture,
+						)
+					}
 
-					r.RenderTriangle(
-						r.sHoutputList[0],
-						r.sHoutputList[i],
-						r.sHoutputList[i+1],
-						o.Mesh.Texture,
-					)
-					// if r.scene.ActiveCam.RenderWire {
-					// 	r.DrawWireframeTriangle(
-					// 		r.sHoutputList[0],
-					// 		r.sHoutputList[i],
-					// 		r.sHoutputList[i+1],
-					// 	)
-					// }
+					if r.scene.ActiveCam.RenderWire {
+						r.DrawWireframeTriangle(
+							r.sHoutputList[0],
+							r.sHoutputList[i],
+							r.sHoutputList[i+1],
+						)
+					}
 				}
 			}
 		}
 
-		// if len(r.trianglesBuffer) > 0 {
-		// 	for i := range r.tiles {
-		// 		r.tiles[i].ResetBuff()
-		// 	}
+		if r.RenderMultithreaded {
+			if len(r.trianglesBuffer) > 0 {
+				for i := range r.tiles {
+					r.tiles[i].ResetBuff()
+				}
 
-		// 	r.assignTrianglesToTiles()
+				r.assignTrianglesToTiles()
+				if r.RenderTileBoundaries {
+					r.drawTileBoundaries()
+				}
 
-		// 	r.wg.Add(len(r.tiles))
-		// 	for i := range r.tiles {
-		// 		r.indexes <- i
-		// 	}
-		// 	r.wg.Wait()
-		// }
+				r.wg.Add(len(r.tiles))
+				for i := range r.tiles {
+					r.indexes <- i
+				}
+				r.wg.Wait()
+			}
+		}
 		// break
 	}
 }
@@ -509,4 +544,16 @@ func (r *Renderer) renderMeshs() {
 func (r *Renderer) Render() {
 	r.scene.ActiveCam.ClearCanvas()
 	r.renderMeshs()
+}
+
+func (r *Renderer) ToggleMultithreaded() {
+	r.RenderMultithreaded = !r.RenderMultithreaded
+}
+
+func (r *Renderer) ToggleTileBoundaryRender() {
+	r.RenderTileBoundaries = !r.RenderTileBoundaries
+}
+
+func (r *Renderer) ToggleTriangleBoundaryRender() {
+	r.RenderTriangleBoundaries = !r.RenderTriangleBoundaries
 }
