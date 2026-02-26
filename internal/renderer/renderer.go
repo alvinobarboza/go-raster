@@ -1,7 +1,6 @@
 package renderer
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 	"sync"
@@ -33,7 +32,6 @@ func NewRenderer(threads uint) *Renderer {
 		sHoutputList: make([]mesh.ClippedVertex, 9),
 		sHinputList:  make([]mesh.ClippedVertex, 9),
 		indexes:      make(chan int, threads),
-		tiles:        make([]*ScreenTile, threads),
 	}
 
 	for range threads {
@@ -52,29 +50,12 @@ func (r *Renderer) AddActiveScene(s *scene.Scene) {
 		}
 	}
 
-	tileWidth := float32(s.ActiveCam.Width*s.ActiveCam.Height/uint(len(r.tiles))) / 2
-	tileHeight := tileWidth
-
-	y := float32(0)
-	acc := float32(0)
-	for i := range r.tiles {
-		r.tiles[i] = NewScreenTile(
-			tileWidth,
-			tileHeight,
-			float32(s.ActiveCam.Width),
-			float32(s.ActiveCam.Height),
-			acc,
-			tileHeight*y,
-			biggestTriCount)
-
-		acc += tileWidth
-
-		if acc >= float32(s.ActiveCam.Width) {
-			acc = 0
-			y++
-		}
-		fmt.Printf("%+v\n", r.tiles[i])
-	}
+	r.tiles = NewTileSet(
+		float32(r.scene.ActiveCam.Width),
+		float32(r.scene.ActiveCam.Height),
+		float32(r.scene.ActiveCam.Width)/4,
+		biggestTriCount,
+	)
 
 	r.trianglesBuffer = make([]mesh.FullTriangle, biggestTriCount)
 }
@@ -481,22 +462,22 @@ func (r *Renderer) renderMeshs() {
 
 			if len(r.sHoutputList) > 2 {
 				for i := 1; i < len(r.sHoutputList)-1; i++ {
-					r.trianglesBuffer = append(
-						r.trianglesBuffer,
-						mesh.NewFullTriangle(
-							r.sHoutputList[0],
-							r.sHoutputList[i],
-							r.sHoutputList[i+1],
-							o.Mesh.Texture,
-						),
-					)
-
-					// r.RenderTriangle(
-					// 	r.sHoutputList[0],
-					// 	r.sHoutputList[i],
-					// 	r.sHoutputList[i+1],
-					// 	o.Mesh.Texture,
+					// r.trianglesBuffer = append(
+					// 	r.trianglesBuffer,
+					// 	mesh.NewFullTriangle(
+					// 		r.sHoutputList[0],
+					// 		r.sHoutputList[i],
+					// 		r.sHoutputList[i+1],
+					// 		o.Mesh.Texture,
+					// 	),
 					// )
+
+					r.RenderTriangle(
+						r.sHoutputList[0],
+						r.sHoutputList[i],
+						r.sHoutputList[i+1],
+						o.Mesh.Texture,
+					)
 					// if r.scene.ActiveCam.RenderWire {
 					// 	r.DrawWireframeTriangle(
 					// 		r.sHoutputList[0],
@@ -508,19 +489,19 @@ func (r *Renderer) renderMeshs() {
 			}
 		}
 
-		if len(r.trianglesBuffer) > 0 {
-			for i := range r.tiles {
-				r.tiles[i].ResetBuff()
-			}
+		// if len(r.trianglesBuffer) > 0 {
+		// 	for i := range r.tiles {
+		// 		r.tiles[i].ResetBuff()
+		// 	}
 
-			r.assignTrianglesToTiles()
+		// 	r.assignTrianglesToTiles()
 
-			r.wg.Add(len(r.tiles))
-			for i := range r.tiles {
-				r.indexes <- i
-			}
-			r.wg.Wait()
-		}
+		// 	r.wg.Add(len(r.tiles))
+		// 	for i := range r.tiles {
+		// 		r.indexes <- i
+		// 	}
+		// 	r.wg.Wait()
+		// }
 		// break
 	}
 }

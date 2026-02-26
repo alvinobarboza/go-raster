@@ -1,6 +1,8 @@
 package renderer
 
-import "github.com/alvinobarboza/go-raster/internal/mesh"
+import (
+	"github.com/alvinobarboza/go-raster/internal/mesh"
+)
 
 type ScreenTile struct {
 	Width, Height float32
@@ -20,6 +22,50 @@ func NewScreenTile(w, h, fw, fh, offx, offy float32, buffSize int) *ScreenTile {
 	s.UpdateBufferSize(buffSize)
 	s.ResetBuff()
 	return s
+}
+
+func NewTileSet(w, h, tileLength float32, buffSize int) []*ScreenTile {
+	tiles := make([]*ScreenTile, 0)
+
+	wOffSet := float32(0)
+	hOffSet := float32(0)
+	tW, tH := tileLength, tileLength
+	for {
+		tt := NewScreenTile(tW, tH, w, h, wOffSet, hOffSet, buffSize)
+		// fmt.Printf("%+v\n", tt)
+		tiles = append(tiles, tt)
+
+		wOffSet += tileLength
+		offOffSetW := wOffSet + tileLength
+
+		if offOffSetW > w {
+			if offOffSetW-w < tileLength && offOffSetW-w > 0 {
+				wOffSet = w - (tileLength - (offOffSetW - w))
+				tW = tileLength - (offOffSetW - w)
+			} else {
+				tW = tileLength
+				wOffSet = 0
+				hOffSet += tileLength
+			}
+		}
+
+		offOffSetH := hOffSet + tileLength
+
+		if offOffSetH > h {
+			if offOffSetH-h < tileLength && offOffSetH-h > 0 {
+				hOffSet = h - (tileLength - (offOffSetH - h))
+				tH = tileLength - (offOffSetH - h)
+			} else {
+				tH = tileLength
+			}
+		}
+
+		if hOffSet >= h || wOffSet >= w {
+			break
+		}
+	}
+
+	return tiles
 }
 
 func (s *ScreenTile) UpdateTileSize(w, h, fw, fh, offx, offy float32) {

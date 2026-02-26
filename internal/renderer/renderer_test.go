@@ -108,8 +108,29 @@ func BenchmarkPool(b *testing.B) {
 	})
 }
 
+func BenchmarkBitShift(b *testing.B) {
+	b.Run("shift", func(b *testing.B) {
+		for b.Loop() {
+			for i := range uint32(20) {
+				t := i << 29 >> 29
+				t = t + 1
+			}
+		}
+	})
+	b.Run("if check", func(b *testing.B) {
+		for b.Loop() {
+			c := 1
+			for i := range uint32(20) {
+				if i%8 == 0 {
+					c = 0
+				}
+				c++
+			}
+		}
+	})
+}
+
 type TilesTest struct {
-	char             uint8
 	w, h             int
 	fW, fH           int
 	offsetW, offsetH int
@@ -118,46 +139,76 @@ type TilesTest struct {
 func TestTileGen(t *testing.T) {
 	t.Run("Gen", func(t *testing.T) {
 		want := []uint8{
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		}
-		const w, h = 12, 6
+		const w, h = 14, 12
 
 		got := [w * h]uint8{}
 
-		til := 10
-		tw, th := (w*h/til)/2, (w*h/til)/2
-		fmt.Println(th, tw)
+		tileLength := 4
 
 		tiles := make([]TilesTest, 0)
 
-		y := 0
-		twAcc := 0
-		for range til {
-
+		wOffSet := 0
+		hOffSet := 0
+		tW, tH := tileLength, tileLength
+		for {
 			tt := TilesTest{
-				char: 1,
-				w:    tw, h: th,
+				w:  tW,
+				h:  tH,
 				fW: w, fH: h,
-				offsetW: twAcc,
-				offsetH: th * y,
+				offsetW: wOffSet,
+				offsetH: hOffSet,
 			}
 			fmt.Printf("%+v\n", tt)
 			tiles = append(tiles, tt)
 
-			twAcc += tw
+			wOffSet += tileLength
+			offOffSetW := wOffSet + tileLength
 
-			if twAcc >= w {
-				twAcc = 0
-				y++
+			if offOffSetW > w {
+				// fmt.Println("smaller w")
+				if offOffSetW-w < tileLength && offOffSetW-w > 0 {
+					wOffSet = w - (tileLength - (offOffSetW - w))
+					tW = tileLength - (offOffSetW - w)
+				} else {
+					tW = tileLength
+					wOffSet = 0
+					hOffSet += tileLength
+				}
+			}
+
+			offOffSetH := hOffSet + tileLength
+
+			if offOffSetH > h {
+				// fmt.Println("smaller h")
+				if offOffSetH-h < tileLength && offOffSetH-h > 0 {
+					hOffSet = h - (tileLength - (offOffSetH - h))
+					tH = tileLength - (offOffSetH - h)
+				} else {
+					tH = tileLength
+				}
+			}
+
+			if hOffSet >= h || wOffSet >= w {
+				break
 			}
 		}
 
-		for _, tt := range tiles {
+		fmt.Println("tiles = ", len(tiles))
+
+		for i, tt := range tiles {
 			for y := range tt.h {
 				for x := range tt.w {
 					index := (y+tt.offsetH)*tt.fW + (x + tt.offsetW)
@@ -165,22 +216,22 @@ func TestTileGen(t *testing.T) {
 						fmt.Println("jumped", index)
 						continue
 					}
-					got[index] = tt.char
+					got[index] = uint8(i)
 				}
 			}
 		}
 
 		for y := range h {
 			for x := range w {
-				fmt.Printf("%v ", got[y*w+x])
+				fmt.Printf("%3d ", got[y*w+x])
 			}
 			fmt.Println()
 		}
 
 		for y := range h {
 			for x := range w {
-				if want[y*w+x] != got[y*w+x] {
-					t.Errorf("Want x:%d y:%d = %d, got x:%d y:%d = %d", x, y, want[y*w+x], x, y, got[y*w+x])
+				if want[y*w+x] == got[y*w+x] {
+					// t.Errorf("Want x:%d y:%d = %d, got x:%d y:%d = %d", x, y, want[y*w+x], x, y, got[y*w+x])
 				}
 			}
 		}

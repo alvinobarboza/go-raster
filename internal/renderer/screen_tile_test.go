@@ -51,3 +51,16 @@ func TestCollision(t *testing.T) {
 		}
 	})
 }
+
+func TestTileAutoGen(t *testing.T) {
+	t.Run("Tile Calc", func(t *testing.T) {
+		const w, h = 14, 12
+		tileLength := 4
+
+		tiles := NewTileSet(w, h, float32(tileLength), 0)
+
+		if len(tiles) != 12 {
+			t.Errorf("Want len 12, got %d", len(tiles))
+		}
+	})
+}

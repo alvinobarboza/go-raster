@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	ScreenWidth  = 1600
-	ScreenHeight = 900
+	ScreenWidth  = 1920
+	ScreenHeight = 1080
 
 	NearPlane = 0.2
 	FarPlane  = 25
@@ -54,7 +54,7 @@ func main() {
 		s.AddMesh(&models[i])
 	}
 
-	renderer := renderer.NewRenderer(10)
+	renderer := renderer.NewRenderer(6)
 	renderer.AddActiveScene(s)
 
 	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))
