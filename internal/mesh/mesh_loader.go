@@ -214,9 +214,13 @@ func LoadTexture(path string) (*Texture, error) {
 	}
 
 	return &Texture{
-		width:  w,
-		height: h,
-		pixels: pixels,
+		width:      w,
+		height:     h,
+		fWidth:     float32(w),
+		fHeight:    float32(h),
+		widthMask:  w - 1,
+		heightMask: h - 1,
+		pixels:     pixels,
 	}, nil
 }
 
