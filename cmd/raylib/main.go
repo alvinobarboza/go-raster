@@ -54,7 +54,7 @@ func main() {
 		s.AddMesh(&models[i])
 	}
 
-	renderer := renderer.NewRenderer(8)
+	renderer := renderer.NewRenderer(8, 200)
 	renderer.AddActiveScene(s)
 
 	// triangle := NewTriangle(NewVec3(0, 0, 2), NewVec3(1, 1, 1), NewVec3(1, 1, 1))

@@ -13,6 +13,8 @@ import (
 	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
+const MinimumTileSize = 60
+
 type Renderer struct {
 	scene   *scene.Scene
 	wg      sync.WaitGroup
@@ -23,7 +25,8 @@ type Renderer struct {
 	sHinputList     []mesh.ClippedVertex
 	trianglesBuffer []mesh.FullTriangle
 
-	tiles []*ScreenTile
+	tiles    []*ScreenTile
+	tileSize uint
 
 	biggestTriCount int
 
@@ -35,7 +38,11 @@ type Renderer struct {
 // init after loading models,
 // otherwise triangle buffer will have 0 size
 // TODO -> somehow get around this
-func NewRenderer(threads uint) *Renderer {
+func NewRenderer(threads, tileSize uint) *Renderer {
+	if tileSize < MinimumTileSize {
+		tileSize = MinimumTileSize
+	}
+
 	r := &Renderer{
 		sHoutputList:             make([]mesh.ClippedVertex, 9),
 		sHinputList:              make([]mesh.ClippedVertex, 9),
@@ -43,6 +50,7 @@ func NewRenderer(threads uint) *Renderer {
 		RenderTileBoundaries:     false,
 		RenderTriangleBoundaries: false,
 		RenderMultithreaded:      true,
+		tileSize:                 tileSize,
 	}
 
 	for i := range threads {
@@ -53,10 +61,14 @@ func NewRenderer(threads uint) *Renderer {
 }
 
 func (r *Renderer) UpdateTiles() {
+	if r.tileSize > r.scene.ActiveCam.Width {
+		r.tileSize = r.scene.ActiveCam.Width / 2
+	}
+
 	r.tiles = NewTileSet(
 		float32(r.scene.ActiveCam.Width),
 		float32(r.scene.ActiveCam.Height),
-		float32(120),
+		float32(r.tileSize),
 		r.biggestTriCount,
 	)
 }
