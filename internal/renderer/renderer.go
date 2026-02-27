@@ -115,6 +115,26 @@ func (r *Renderer) DrawWireframeTriangle(t mesh.FullTriangle) {
 	r.DrawLine(t.SPV2, t.SPV0, shapes.Black)
 }
 
+func (r *Renderer) DrawWireframeTriangleFromBuff() {
+	for _, tri := range r.trianglesBuffer {
+		r.DrawWireframeTriangle(tri)
+	}
+}
+
+func (r *Renderer) DrawTriangleBoundary(tri mesh.FullTriangle) {
+	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
+	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
+	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
+	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
+
+}
+
+func (r *Renderer) DrawTriangleBoundaryFromBuff() {
+	for _, tri := range r.trianglesBuffer {
+		r.DrawTriangleBoundary(tri)
+	}
+}
+
 func (r *Renderer) drawTileBoundaries() {
 	for i := range r.tiles {
 		if r.tiles[i].IsActive {
@@ -144,12 +164,6 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 			tri.Aabb2.Max.X = maths.Minf(tri.Aabb2.Max.X, mxX)
 
 			r.RenderTriangle(tri)
-			if r.RenderTriangleBoundaries {
-				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
-			}
 		}
 
 		r.wg.Done()
@@ -359,10 +373,13 @@ func (r *Renderer) renderMeshs() {
 						r.trianglesBuffer = append(r.trianglesBuffer, triangle)
 					} else {
 						r.RenderTriangle(triangle)
-					}
 
-					if r.scene.ActiveCam.RenderWire {
-						r.DrawWireframeTriangle(triangle)
+						if r.scene.ActiveCam.RenderWire {
+							r.DrawWireframeTriangle(triangle)
+						}
+						if r.RenderTriangleBoundaries {
+							r.DrawTriangleBoundary(triangle)
+						}
 					}
 				}
 			}
@@ -381,6 +398,14 @@ func (r *Renderer) renderMeshs() {
 					r.indexes <- i
 				}
 				r.wg.Wait()
+
+				if r.scene.ActiveCam.RenderWire {
+					r.DrawWireframeTriangleFromBuff()
+				}
+
+				if r.RenderTriangleBoundaries {
+					r.DrawTriangleBoundaryFromBuff()
+				}
 			}
 		}
 		// break
