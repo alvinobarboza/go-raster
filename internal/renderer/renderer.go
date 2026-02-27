@@ -3,7 +3,6 @@ package renderer
 import (
 	"fmt"
 	"image/color"
-	"math"
 	"sync"
 
 	"github.com/alvinobarboza/go-raster/internal/maths"
@@ -90,7 +89,7 @@ func (r *Renderer) DrawLine(a, b transforms.Vec2, cl color.RGBA) {
 	dx := b.X - a.X
 	dy := b.Y - a.Y
 
-	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
+	if maths.Abs(dx) > maths.Abs(dy) {
 		if dx < 0 {
 			tmp := a
 			a = b

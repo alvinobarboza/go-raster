@@ -1,5 +1,7 @@
 package maths
 
+import "math"
+
 func Minf(a, b float32) float32 {
 	if a < b {
 		return a
@@ -38,4 +40,8 @@ func Floor32(x float32) float32 {
 
 func Ceil32(x float32) float32 {
 	return -Floor32(-x)
+}
+
+func Abs(x float32) float32 {
+	return math.Float32frombits(math.Float32bits(x) &^ (1 << 31))
 }
