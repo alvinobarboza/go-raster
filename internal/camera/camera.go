@@ -142,7 +142,7 @@ func (c *Camera) DepthPass(x, y uint, depth float32) bool {
 func (c *Camera) PutPixel(x, y uint, cl color.RGBA, depth float32) {
 	i := y*c.Width + x
 
-	if int(i) >= len(c.Canvas) {
+	if i >= uint(len(c.Canvas)) {
 		return
 	}
 
