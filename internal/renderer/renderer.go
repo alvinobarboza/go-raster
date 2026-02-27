@@ -190,11 +190,11 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 			tri := r.trianglesBuffer[i]
 
 			// check to only run in tile bounds
-			tri.Aabb2.Min.Y = maths.Maxf(tri.Aabb2.Min.Y, tileAabb.Min.Y)
-			tri.Aabb2.Max.Y = maths.Minf(tri.Aabb2.Max.Y, tileAabb.Max.Y)
+			tri.Aabb2.Min.Y = maths.Ceil32(maths.Maxf(tri.Aabb2.Min.Y, tileAabb.Min.Y))
+			tri.Aabb2.Max.Y = maths.Floor32(maths.Minf(tri.Aabb2.Max.Y, tileAabb.Max.Y))
 
-			tri.Aabb2.Min.X = maths.Maxf(tri.Aabb2.Min.X, tileAabb.Min.X)
-			tri.Aabb2.Max.X = maths.Minf(tri.Aabb2.Max.X, tileAabb.Max.X)
+			tri.Aabb2.Min.X = maths.Ceil32(maths.Maxf(tri.Aabb2.Min.X, tileAabb.Min.X))
+			tri.Aabb2.Max.X = maths.Floor32(maths.Minf(tri.Aabb2.Max.X, tileAabb.Max.X))
 
 			r.RenderTriangle(tri)
 		}
@@ -268,12 +268,12 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 		w2 = v2 -> v0 distance to v1 = b = tri.v2
 		w0 = v0 -> v1 distance to v2 = c = tri.v3
 	*/
-	for y := triangle.Aabb2.Min.Y; y <= triangle.Aabb2.Max.Y; y++ {
+	for y := triangle.Aabb2.Min.Y; y < triangle.Aabb2.Max.Y; y++ {
 		w0 := w0Row
 		w1 := w1Row
 		w2 := w2Row
 
-		for x := triangle.Aabb2.Min.X; x <= triangle.Aabb2.Max.X; x++ {
+		for x := triangle.Aabb2.Min.X; x < triangle.Aabb2.Max.X; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				alpha := w1 * area
 				beta := w2 * area
