@@ -24,9 +24,26 @@ type ClippedVertex struct {
 }
 
 type FullTriangle struct {
-	V1      ClippedVertex
-	V2      ClippedVertex
-	V3      ClippedVertex
+	V1 ClippedVertex
+	V2 ClippedVertex
+	V3 ClippedVertex
+
+	SPV0 transforms.Vec2
+	SPV1 transforms.Vec2
+	SPV2 transforms.Vec2
+
+	UV1z transforms.Vec2
+	UV2z transforms.Vec2
+	UV3z transforms.Vec2
+
+	N1z transforms.Vec3
+	N2z transforms.Vec3
+	N3z transforms.Vec3
+
+	MinX, MinY, MaxX, MaxY float32
+
+	DepthZ1, DepthZ2, DepthZ3 float32
+
 	Texture *Texture
 }
 
@@ -37,4 +54,24 @@ func NewFullTriangle(v1, v2, v3 ClippedVertex, t *Texture) FullTriangle {
 		V3:      v3,
 		Texture: t,
 	}
+}
+
+func IsEdgeTopOrLeft(p1, p2 transforms.Vec2) bool {
+	X := p2.X - p1.X
+	Y := p2.Y - p1.Y
+
+	isTopEdge := Y == 0 && X > 0
+	isLeftEdge := Y < 0
+
+	return isTopEdge || isLeftEdge
+}
+
+func EdgeCross(a, b, p transforms.Vec2) float32 {
+	abX := b.X - a.X
+	abY := b.Y - a.Y
+
+	apX := p.X - a.X
+	apY := p.Y - a.Y
+
+	return (abX * apY) - (abY * apX)
 }

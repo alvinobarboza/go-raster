@@ -4,6 +4,8 @@ import (
 	"image/color"
 	"math"
 
+	"github.com/alvinobarboza/go-raster/internal/maths"
+	"github.com/alvinobarboza/go-raster/internal/mesh"
 	"github.com/alvinobarboza/go-raster/internal/shapes"
 	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
@@ -73,23 +75,53 @@ func (c *Camera) ClearCanvas() {
 	}
 }
 
-func (c *Camera) ProjectVertexToNDC(v transforms.Vec3) NDCPoint {
+func (c *Camera) ProjectVertexToNDC(v transforms.Vec3) transforms.Vec2 {
 	zXInverse := 1 / (v.Z * c.AspectRatio)
 	zYInverse := 1 / v.Z
-	return NDCPoint{
+	return transforms.Vec2{
 		X: (v.X * c.FovScaling) * zXInverse,
 		Y: (v.Y * c.FovScaling) * zYInverse,
 	}
 }
 
-func (c *Camera) NDCtoScreen(p NDCPoint) ScreenPoint {
+func (c *Camera) NDCtoScreen(p transforms.Vec2) transforms.Vec2 {
 	x := (p.X + 1) * c.HalfWidth
 	y := (1 - p.Y) * c.HalfHeight
 
-	return ScreenPoint{
+	return transforms.Vec2{
 		X: x,
 		Y: y,
 	}
+}
+
+func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t *mesh.Texture) mesh.FullTriangle {
+	triangle := mesh.NewFullTriangle(v1, v2, v3, t)
+
+	va := c.ProjectVertexToNDC(v1.V)
+	vb := c.ProjectVertexToNDC(v2.V)
+	vc := c.ProjectVertexToNDC(v3.V)
+
+	triangle.SPV0 = c.NDCtoScreen(va)
+	triangle.SPV1 = c.NDCtoScreen(vb)
+	triangle.SPV2 = c.NDCtoScreen(vc)
+
+	triangle.DepthZ1 = 1 / v1.V.Z
+	triangle.DepthZ2 = 1 / v2.V.Z
+	triangle.DepthZ3 = 1 / v3.V.Z
+
+	triangle.UV1z = v1.U.Scale(triangle.DepthZ1)
+	triangle.UV2z = v2.U.Scale(triangle.DepthZ2)
+	triangle.UV3z = v3.U.Scale(triangle.DepthZ3)
+
+	// triangle.N1z = v1.N.Scale(triangle.DepthZ1)
+	// triangle.N2z = v2.N.Scale(triangle.DepthZ2)
+	// triangle.N3z = v3.N.Scale(triangle.DepthZ3)
+
+	triangle.MinX = maths.Floor32(maths.Minf(triangle.SPV0.X, maths.Minf(triangle.SPV1.X, triangle.SPV2.X)))
+	triangle.MinY = maths.Floor32(maths.Minf(triangle.SPV0.Y, maths.Minf(triangle.SPV1.Y, triangle.SPV2.Y)))
+	triangle.MaxX = maths.Ceil32(maths.Maxf(triangle.SPV0.X, maths.Maxf(triangle.SPV1.X, triangle.SPV2.X)))
+	triangle.MaxY = maths.Ceil32(maths.Maxf(triangle.SPV0.Y, maths.Maxf(triangle.SPV1.Y, triangle.SPV2.Y)))
+	return triangle
 }
 
 func (c *Camera) DepthPass(x, y uint, depth float32) bool {

@@ -6,11 +6,11 @@ import (
 	"math"
 	"sync"
 
-	"github.com/alvinobarboza/go-raster/internal/camera"
 	"github.com/alvinobarboza/go-raster/internal/maths"
 	"github.com/alvinobarboza/go-raster/internal/mesh"
 	"github.com/alvinobarboza/go-raster/internal/scene"
 	"github.com/alvinobarboza/go-raster/internal/shapes"
+	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
 type Renderer struct {
@@ -74,7 +74,7 @@ func (r *Renderer) AddActiveScene(s *scene.Scene) {
 	r.trianglesBuffer = make([]mesh.FullTriangle, r.biggestTriCount)
 }
 
-func (r *Renderer) DrawLine(a, b camera.ScreenPoint, cl color.RGBA) {
+func (r *Renderer) DrawLine(a, b transforms.Vec2, cl color.RGBA) {
 	dx := b.X - a.X
 	dy := b.Y - a.Y
 
@@ -109,18 +109,10 @@ func (r *Renderer) DrawLine(a, b camera.ScreenPoint, cl color.RGBA) {
 	}
 }
 
-func (r *Renderer) DrawWireframeTriangle(v1, v2, v3 mesh.ClippedVertex) {
-	va := r.scene.ActiveCam.ProjectVertexToNDC(v1.V)
-	vb := r.scene.ActiveCam.ProjectVertexToNDC(v2.V)
-	vc := r.scene.ActiveCam.ProjectVertexToNDC(v3.V)
-
-	a := r.scene.ActiveCam.NDCtoScreen(va)
-	b := r.scene.ActiveCam.NDCtoScreen(vb)
-	c := r.scene.ActiveCam.NDCtoScreen(vc)
-
-	r.DrawLine(a, b, shapes.Black)
-	r.DrawLine(b, c, shapes.Black)
-	r.DrawLine(c, a, shapes.Black)
+func (r *Renderer) DrawWireframeTriangle(t mesh.FullTriangle) {
+	r.DrawLine(t.SPV0, t.SPV1, shapes.Black)
+	r.DrawLine(t.SPV1, t.SPV2, shapes.Black)
+	r.DrawLine(t.SPV2, t.SPV0, shapes.Black)
 }
 
 func (r *Renderer) drawTileBoundaries() {
@@ -129,10 +121,10 @@ func (r *Renderer) drawTileBoundaries() {
 
 		if len(triangles) > 0 {
 			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
-			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mxY}, shapes.White)
-			r.DrawLine(camera.ScreenPoint{X: mnX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mxY}, shapes.White)
-			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mxY}, camera.ScreenPoint{X: mxX, Y: mnY}, shapes.White)
-			r.DrawLine(camera.ScreenPoint{X: mxX, Y: mnY}, camera.ScreenPoint{X: mnX, Y: mnY}, shapes.White)
+			r.DrawLine(transforms.Vec2{X: mnX, Y: mnY}, transforms.Vec2{X: mnX, Y: mxY}, shapes.White)
+			r.DrawLine(transforms.Vec2{X: mnX, Y: mxY}, transforms.Vec2{X: mxX, Y: mxY}, shapes.White)
+			r.DrawLine(transforms.Vec2{X: mxX, Y: mxY}, transforms.Vec2{X: mxX, Y: mnY}, shapes.White)
+			r.DrawLine(transforms.Vec2{X: mxX, Y: mnY}, transforms.Vec2{X: mnX, Y: mnY}, shapes.White)
 		}
 	}
 }
@@ -145,126 +137,20 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 
 		for _, i := range triangles {
 			tri := r.trianglesBuffer[i]
-			va := r.scene.ActiveCam.ProjectVertexToNDC(tri.V1.V)
-			vb := r.scene.ActiveCam.ProjectVertexToNDC(tri.V2.V)
-			vc := r.scene.ActiveCam.ProjectVertexToNDC(tri.V3.V)
-
-			depthA := 1 / tri.V1.V.Z
-			depthB := 1 / tri.V2.V.Z
-			depthC := 1 / tri.V3.V.Z
-
-			uv1z := tri.V1.U.Scale(depthA)
-			uv2z := tri.V2.U.Scale(depthB)
-			uv3z := tri.V3.U.Scale(depthC)
-
-			v0 := r.scene.ActiveCam.NDCtoScreen(va)
-			v1 := r.scene.ActiveCam.NDCtoScreen(vb)
-			v2 := r.scene.ActiveCam.NDCtoScreen(vc)
-
-			minX := maths.Floor32(maths.Minf(v0.X, maths.Minf(v1.X, v2.X)))
-			minY := maths.Floor32(maths.Minf(v0.Y, maths.Minf(v1.Y, v2.Y)))
-			maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
-			maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
-
-			deltaW0Col := v0.Y - v1.Y
-			deltaW1Col := v1.Y - v2.Y
-			deltaW2Col := v2.Y - v0.Y
-
-			deltaW0Row := v1.X - v0.X
-			deltaW1Row := v2.X - v1.X
-			deltaW2Row := v0.X - v2.X
-
-			bias0 := float32(0)
-			bias1 := float32(0)
-			bias2 := float32(0)
-
-			if v0.IsTopOrLeft(v1) {
-				bias0 = -0.0001
-			}
-
-			if v1.IsTopOrLeft(v2) {
-				bias1 = -0.0001
-			}
-
-			if v2.IsTopOrLeft(v0) {
-				bias2 = -0.0001
-			}
-
-			area := camera.EdgeCross(v0, v1, v2)
-			area = 1 / area
 
 			// check to only run in tile bounds
-			cMinY := maths.Maxf(minY, mnY)
-			cMaxY := maths.Minf(maxY, mxY)
+			tri.MinY = maths.Maxf(tri.MinY, mnY)
+			tri.MaxY = maths.Minf(tri.MaxY, mxY)
 
-			cMinX := maths.Maxf(minX, mnX)
-			cMaxX := maths.Minf(maxX, mxX)
+			tri.MinX = maths.Maxf(tri.MinX, mnX)
+			tri.MaxX = maths.Minf(tri.MaxX, mxX)
 
+			r.RenderTriangle(tri)
 			if r.RenderTriangleBoundaries {
-				r.DrawLine(camera.ScreenPoint{X: cMinX, Y: cMinY}, camera.ScreenPoint{X: cMinX, Y: cMaxY}, shapes.DarkGreen)
-				r.DrawLine(camera.ScreenPoint{X: cMinX, Y: cMaxY}, camera.ScreenPoint{X: cMaxX, Y: cMaxY}, shapes.DarkGreen)
-				r.DrawLine(camera.ScreenPoint{X: cMaxX, Y: cMaxY}, camera.ScreenPoint{X: cMaxX, Y: cMinY}, shapes.DarkGreen)
-				r.DrawLine(camera.ScreenPoint{X: cMaxX, Y: cMinY}, camera.ScreenPoint{X: cMinX, Y: cMinY}, shapes.DarkGreen)
-			}
-
-			// pixel's center
-			p := camera.ScreenPoint{X: cMinX + 0.5, Y: cMinY + 0.5}
-
-			w0Row := camera.EdgeCross(v0, v1, p) + bias0
-			w1Row := camera.EdgeCross(v1, v2, p) + bias1
-			w2Row := camera.EdgeCross(v2, v0, p) + bias2
-
-			/*
-					  v0 (Top)
-					  /\
-					 /  \
-					/    \    <-- The distance from this edge (v0-v1)
-				   /      \       towards v2 is w0.
-				  /   P    \
-				 /    |     \
-				v1 ---|------v2
-					  ^
-					  |
-				The distance from this edge (v1-v2)
-				towards v0 is w1.
-				w1 = v1 -> v2 distance to v0 = a = tri.v1
-				w2 = v2 -> v0 distance to v1 = b = tri.v2
-				w0 = v0 -> v1 distance to v2 = c = tri.v3
-			*/
-
-			for y := cMinY; y <= cMaxY; y++ {
-				w0 := w0Row
-				w1 := w1Row
-				w2 := w2Row
-
-				for x := cMinX; x <= cMaxX; x++ {
-					if w0 >= 0 && w1 >= 0 && w2 >= 0 {
-						alpha := w1 * area
-						beta := w2 * area
-						gama := w0 * area
-
-						depth := depthA*alpha + depthB*beta + depthC*gama
-
-						xx, yy := uint(x), uint(y)
-						if r.scene.ActiveCam.DepthPass(xx, yy, depth) {
-							uv1 := uv1z.Scale(alpha)
-							uv2 := uv2z.Scale(beta)
-							uv3 := uv3z.Scale(gama)
-
-							uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
-							pColor := tri.Texture.TexelColor(uvCoord)
-
-							r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)
-						}
-					}
-					w0 += deltaW0Col
-					w1 += deltaW1Col
-					w2 += deltaW2Col
-				}
-
-				w0Row += deltaW0Row
-				w1Row += deltaW1Row
-				w2Row += deltaW2Row
+				r.DrawLine(transforms.Vec2{X: tri.MinX, Y: tri.MinY}, transforms.Vec2{X: tri.MinX, Y: tri.MaxY}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.MinX, Y: tri.MaxY}, transforms.Vec2{X: tri.MaxX, Y: tri.MaxY}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.MaxX, Y: tri.MaxY}, transforms.Vec2{X: tri.MaxX, Y: tri.MinY}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.MaxX, Y: tri.MinY}, transforms.Vec2{X: tri.MinX, Y: tri.MinY}, shapes.Green)
 			}
 		}
 
@@ -274,82 +160,49 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 
 func (r *Renderer) assignTrianglesToTiles() {
 	for i, t := range r.trianglesBuffer {
-		va := r.scene.ActiveCam.ProjectVertexToNDC(t.V1.V)
-		vb := r.scene.ActiveCam.ProjectVertexToNDC(t.V2.V)
-		vc := r.scene.ActiveCam.ProjectVertexToNDC(t.V3.V)
-
-		v0 := r.scene.ActiveCam.NDCtoScreen(va)
-		v1 := r.scene.ActiveCam.NDCtoScreen(vb)
-		v2 := r.scene.ActiveCam.NDCtoScreen(vc)
-
-		minX := maths.Floor32(maths.Minf(v0.X, maths.Minf(v1.X, v2.X)))
-		minY := maths.Floor32(maths.Minf(v0.Y, maths.Minf(v1.Y, v2.Y)))
-		maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
-		maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
-
 		for _, st := range r.tiles {
-			if st.TileTriangleCollision(minX, minY, maxX, maxY) {
+			if st.TileTriangleCollision(t.MinX, t.MinY, t.MaxX, t.MaxY) {
 				st.AddTriangle(i)
 			}
 		}
 	}
 }
 
-func (r *Renderer) RenderTriangle(vert1, vert2, vert3 mesh.ClippedVertex, t *mesh.Texture) {
-	va := r.scene.ActiveCam.ProjectVertexToNDC(vert1.V)
-	vb := r.scene.ActiveCam.ProjectVertexToNDC(vert2.V)
-	vc := r.scene.ActiveCam.ProjectVertexToNDC(vert3.V)
+func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 
-	depthA := 1 / vert1.V.Z
-	depthB := 1 / vert2.V.Z
-	depthC := 1 / vert3.V.Z
+	deltaW0Col := triangle.SPV0.Y - triangle.SPV1.Y
+	deltaW1Col := triangle.SPV1.Y - triangle.SPV2.Y
+	deltaW2Col := triangle.SPV2.Y - triangle.SPV0.Y
 
-	uv1z := vert1.U.Scale(depthA)
-	uv2z := vert2.U.Scale(depthB)
-	uv3z := vert3.U.Scale(depthC)
-
-	v0 := r.scene.ActiveCam.NDCtoScreen(va)
-	v1 := r.scene.ActiveCam.NDCtoScreen(vb)
-	v2 := r.scene.ActiveCam.NDCtoScreen(vc)
-
-	minX := maths.Floor32(maths.Minf(v0.X, maths.Minf(v1.X, v2.X)))
-	minY := maths.Floor32(maths.Minf(v0.Y, maths.Minf(v1.Y, v2.Y)))
-	maxX := maths.Ceil32(maths.Maxf(v0.X, maths.Maxf(v1.X, v2.X)))
-	maxY := maths.Ceil32(maths.Maxf(v0.Y, maths.Maxf(v1.Y, v2.Y)))
-
-	deltaW0Col := v0.Y - v1.Y
-	deltaW1Col := v1.Y - v2.Y
-	deltaW2Col := v2.Y - v0.Y
-
-	deltaW0Row := v1.X - v0.X
-	deltaW1Row := v2.X - v1.X
-	deltaW2Row := v0.X - v2.X
+	deltaW0Row := triangle.SPV1.X - triangle.SPV0.X
+	deltaW1Row := triangle.SPV2.X - triangle.SPV1.X
+	deltaW2Row := triangle.SPV0.X - triangle.SPV2.X
 
 	bias0 := float32(0)
 	bias1 := float32(0)
 	bias2 := float32(0)
 
-	if v0.IsTopOrLeft(v1) {
+	if mesh.IsEdgeTopOrLeft(triangle.SPV0, triangle.SPV1) {
 		bias0 = -0.0001
 	}
 
-	if v1.IsTopOrLeft(v2) {
+	if mesh.IsEdgeTopOrLeft(triangle.SPV1, triangle.SPV2) {
 		bias1 = -0.0001
 	}
 
-	if v2.IsTopOrLeft(v0) {
+	if mesh.IsEdgeTopOrLeft(triangle.SPV2, triangle.SPV0) {
 		bias2 = -0.0001
 	}
 
-	area := camera.EdgeCross(v0, v1, v2)
+	area := mesh.EdgeCross(triangle.SPV0, triangle.SPV1, triangle.SPV2)
 	area = 1 / area
 
 	// pixel's center
-	p := camera.ScreenPoint{X: minX + 0.5, Y: minY + 0.5}
+	p := transforms.Vec2{X: triangle.MinX + 0.5, Y: triangle.MinY + 0.5}
 
-	w0Row := camera.EdgeCross(v0, v1, p) + bias0
-	w1Row := camera.EdgeCross(v1, v2, p) + bias1
-	w2Row := camera.EdgeCross(v2, v0, p) + bias2
+	w0Row := mesh.EdgeCross(triangle.SPV0, triangle.SPV1, p) + bias0
+	w1Row := mesh.EdgeCross(triangle.SPV1, triangle.SPV2, p) + bias1
+	w2Row := mesh.EdgeCross(triangle.SPV2, triangle.SPV0, p) + bias2
 
 	/*
 			  v0 (Top)
@@ -368,27 +221,27 @@ func (r *Renderer) RenderTriangle(vert1, vert2, vert3 mesh.ClippedVertex, t *mes
 		w2 = v2 -> v0 distance to v1 = b = tri.v2
 		w0 = v0 -> v1 distance to v2 = c = tri.v3
 	*/
-	for y := minY; y <= maxY; y++ {
+	for y := triangle.MinY; y <= triangle.MaxY; y++ {
 		w0 := w0Row
 		w1 := w1Row
 		w2 := w2Row
 
-		for x := minX; x <= maxX; x++ {
+		for x := triangle.MinX; x <= triangle.MaxX; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				alpha := w1 * area
 				beta := w2 * area
 				gama := w0 * area
 
-				depth := depthA*alpha + depthB*beta + depthC*gama
+				depth := triangle.DepthZ1*alpha + triangle.DepthZ2*beta + triangle.DepthZ3*gama
 
 				xx, yy := uint(x), uint(y)
 				if r.scene.ActiveCam.DepthPass(xx, yy, depth) {
-					uv1 := uv1z.Scale(alpha)
-					uv2 := uv2z.Scale(beta)
-					uv3 := uv3z.Scale(gama)
+					uv1 := triangle.UV1z.Scale(alpha)
+					uv2 := triangle.UV2z.Scale(beta)
+					uv3 := triangle.UV3z.Scale(gama)
 
 					uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
-					pColor := t.TexelColor(uvCoord)
+					pColor := triangle.Texture.TexelColor(uvCoord)
 
 					r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)
 				}
@@ -495,31 +348,21 @@ func (r *Renderer) renderMeshs() {
 
 			if len(r.sHoutputList) > 2 {
 				for i := 1; i < len(r.sHoutputList)-1; i++ {
+
+					triangle := r.scene.ActiveCam.ProjectTriangle(
+						r.sHoutputList[0],
+						r.sHoutputList[i],
+						r.sHoutputList[i+1],
+						o.Mesh.Texture)
+
 					if r.RenderMultithreaded {
-						r.trianglesBuffer = append(
-							r.trianglesBuffer,
-							mesh.NewFullTriangle(
-								r.sHoutputList[0],
-								r.sHoutputList[i],
-								r.sHoutputList[i+1],
-								o.Mesh.Texture,
-							),
-						)
+						r.trianglesBuffer = append(r.trianglesBuffer, triangle)
 					} else {
-						r.RenderTriangle(
-							r.sHoutputList[0],
-							r.sHoutputList[i],
-							r.sHoutputList[i+1],
-							o.Mesh.Texture,
-						)
+						r.RenderTriangle(triangle)
 					}
 
 					if r.scene.ActiveCam.RenderWire {
-						r.DrawWireframeTriangle(
-							r.sHoutputList[0],
-							r.sHoutputList[i],
-							r.sHoutputList[i+1],
-						)
+						r.DrawWireframeTriangle(triangle)
 					}
 				}
 			}
