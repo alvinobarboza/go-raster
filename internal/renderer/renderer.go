@@ -133,12 +133,15 @@ func (r *Renderer) DrawWireframeTriangleFromBuff() {
 	}
 }
 
-func (r *Renderer) DrawTriangleBoundary(tri mesh.FullTriangle) {
-	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
-	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
-	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
-	r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
+func (r *Renderer) drawAABB(aabb mesh.AABB2, c color.RGBA) {
+	r.DrawLine(transforms.Vec2{X: aabb.Min.X, Y: aabb.Min.Y}, transforms.Vec2{X: aabb.Min.X, Y: aabb.Max.Y}, c)
+	r.DrawLine(transforms.Vec2{X: aabb.Min.X, Y: aabb.Max.Y}, transforms.Vec2{X: aabb.Max.X, Y: aabb.Max.Y}, c)
+	r.DrawLine(transforms.Vec2{X: aabb.Max.X, Y: aabb.Max.Y}, transforms.Vec2{X: aabb.Max.X, Y: aabb.Min.Y}, c)
+	r.DrawLine(transforms.Vec2{X: aabb.Max.X, Y: aabb.Min.Y}, transforms.Vec2{X: aabb.Min.X, Y: aabb.Min.Y}, c)
+}
 
+func (r *Renderer) DrawTriangleBoundary(tri mesh.FullTriangle) {
+	r.drawAABB(tri.Aabb2, shapes.Green)
 }
 
 func (r *Renderer) DrawTriangleBoundaryFromBuff() {
@@ -150,11 +153,7 @@ func (r *Renderer) DrawTriangleBoundaryFromBuff() {
 func (r *Renderer) drawTileBoundaries() {
 	for i := range r.tiles {
 		if r.tiles[i].IsActive {
-			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
-			r.DrawLine(transforms.Vec2{X: mnX, Y: mnY}, transforms.Vec2{X: mnX, Y: mxY}, shapes.White)
-			r.DrawLine(transforms.Vec2{X: mnX, Y: mxY}, transforms.Vec2{X: mxX, Y: mxY}, shapes.White)
-			r.DrawLine(transforms.Vec2{X: mxX, Y: mxY}, transforms.Vec2{X: mxX, Y: mnY}, shapes.White)
-			r.DrawLine(transforms.Vec2{X: mxX, Y: mnY}, transforms.Vec2{X: mnX, Y: mnY}, shapes.White)
+			r.drawAABB(r.tiles[i].Aabb, shapes.White)
 		}
 	}
 }
@@ -163,17 +162,17 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 	fmt.Println("Thread ID:", id)
 	for i := range r.indexes {
 		triangles := r.tiles[i].Triangles()
-		mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
+		tileAabb := r.tiles[i].Aabb
 
 		for _, i := range triangles {
 			tri := r.trianglesBuffer[i]
 
 			// check to only run in tile bounds
-			tri.Aabb2.Min.Y = maths.Maxf(tri.Aabb2.Min.Y, mnY)
-			tri.Aabb2.Max.Y = maths.Minf(tri.Aabb2.Max.Y, mxY)
+			tri.Aabb2.Min.Y = maths.Maxf(tri.Aabb2.Min.Y, tileAabb.Min.Y)
+			tri.Aabb2.Max.Y = maths.Minf(tri.Aabb2.Max.Y, tileAabb.Max.Y)
 
-			tri.Aabb2.Min.X = maths.Maxf(tri.Aabb2.Min.X, mnX)
-			tri.Aabb2.Max.X = maths.Minf(tri.Aabb2.Max.X, mxX)
+			tri.Aabb2.Min.X = maths.Maxf(tri.Aabb2.Min.X, tileAabb.Min.X)
+			tri.Aabb2.Max.X = maths.Minf(tri.Aabb2.Max.X, tileAabb.Max.X)
 
 			r.RenderTriangle(tri)
 		}
@@ -186,7 +185,7 @@ func (r *Renderer) assignTrianglesToTiles() {
 	for i, t := range r.trianglesBuffer {
 
 		for j := range r.tiles {
-			if r.tiles[j].TileTriangleCollision(t.Aabb2.Min.X, t.Aabb2.Min.Y, t.Aabb2.Max.X, t.Aabb2.Max.Y) {
+			if r.tiles[j].TileTriangleCollision(t.Aabb2) {
 				r.tiles[j].AddTriangle(i)
 				r.tiles[j].IsActive = true
 			}

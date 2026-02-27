@@ -47,3 +47,7 @@ func NewAABB2(minx, miny, maxx, maxy float32) AABB2 {
 		Max: transforms.NewVec2(maxx, maxy),
 	}
 }
+
+func (a AABB2) Collide(b AABB2) bool {
+	return a.Min.X <= b.Max.X && a.Max.X >= b.Min.X && a.Min.Y <= b.Max.Y && a.Max.Y >= b.Min.Y
+}

@@ -1,52 +1,44 @@
 package renderer
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/alvinobarboza/go-raster/internal/mesh"
+)
 
 func TestCollision(t *testing.T) {
 	t.Run("collide", func(t *testing.T) {
-		minX := float32(0)
-		minY := float32(0)
-		maxX := float32(2)
-		maxY := float32(2)
+		aabb := mesh.NewAABB2(0, 0, 2, 2)
 
 		tile1 := ScreenTile{
-			minX: 1,
-			minY: 1,
-			maxX: 3,
-			maxY: 3,
+			Aabb: mesh.NewAABB2(1, 1, 3, 3),
 		}
 
-		if !tile1.TileTriangleCollision(minX, minY, maxX, maxY) {
+		if !tile1.TileTriangleCollision(aabb) {
 			t.Errorf("Expected collision!")
 		}
 
 		tile2 := ScreenTile{
-			minX: 2.5,
-			minY: 2.5,
-			maxX: 3,
-			maxY: 3,
+			Aabb: mesh.NewAABB2(2.5, 2.5, 3, 3),
 		}
 
-		if tile2.TileTriangleCollision(minX, minY, maxX, maxY) {
+		if tile2.TileTriangleCollision(aabb) {
 			t.Errorf("Expected no collision!")
 		}
 	})
 
 	t.Run("collide offset init", func(t *testing.T) {
-		minX := float32(15)
-		minY := float32(5)
-		maxX := float32(19)
-		maxY := float32(12)
+		aabb := mesh.NewAABB2(15, 5, 19, 12)
 
 		tile1 := NewScreenTile(10, 10, 100, 100, 10, 10, 0)
 
-		if !tile1.TileTriangleCollision(minX, minY, maxX, maxY) {
+		if !tile1.TileTriangleCollision(aabb) {
 			t.Errorf("Expected collision!")
 		}
 
 		tile2 := NewScreenTile(10, 10, 100, 100, 0, 10, 0)
 
-		if tile2.TileTriangleCollision(minX, minY, maxX, maxY) {
+		if tile2.TileTriangleCollision(aabb) {
 			t.Errorf("Expected no collision!")
 		}
 	})
@@ -61,6 +53,20 @@ func TestTileAutoGen(t *testing.T) {
 
 		if len(tiles) != 12 {
 			t.Errorf("Want len 12, got %d", len(tiles))
+		}
+	})
+}
+
+func BenchmarkTriangleTileCollision(b *testing.B) {
+	s := ScreenTile{
+		Aabb: mesh.NewAABB2(0, 0, 10, 10),
+	}
+
+	aabb := mesh.NewAABB2(5, 5, 15, 15)
+
+	b.Run("AABB", func(b *testing.B) {
+		for b.Loop() {
+			s.TileTriangleCollision(aabb)
 		}
 	})
 }

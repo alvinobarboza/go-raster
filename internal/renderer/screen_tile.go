@@ -1,13 +1,14 @@
 package renderer
 
+import "github.com/alvinobarboza/go-raster/internal/mesh"
+
 type ScreenTile struct {
 	Width, Height float32
 	OffW, OffH    float32
 
 	FullWidth, FullHeight float32
 
-	minX, minY float32
-	maxX, maxY float32
+	Aabb mesh.AABB2
 
 	trianglesBuffer []int
 
@@ -89,18 +90,18 @@ func (s *ScreenTile) UpdateTileSize(w, h, fw, fh, offx, offy float32) {
 	s.FullHeight = fh
 	s.OffW = offx
 	s.OffH = offy
-	s.minX = 0 + offx
-	s.minY = 0 + offy
-	s.maxX = w + offx
-	s.maxY = h + offy
+	s.Aabb.Min.X = 0 + offx
+	s.Aabb.Min.Y = 0 + offy
+	s.Aabb.Max.X = w + offx
+	s.Aabb.Max.Y = h + offy
 }
 
 func (s *ScreenTile) UpdateBufferSize(size int) {
 	s.trianglesBuffer = make([]int, size)
 }
 
-func (s *ScreenTile) TileTriangleCollision(minX, minY, maxX, maxY float32) bool {
-	return s.minX <= maxX && s.maxX >= minX && s.minY <= maxY && s.maxY >= minY
+func (s *ScreenTile) TileTriangleCollision(triAabb mesh.AABB2) bool {
+	return s.Aabb.Collide(triAabb)
 }
 
 func (s *ScreenTile) AddTriangle(index int) {
@@ -113,9 +114,4 @@ func (s *ScreenTile) ResetBuff() {
 
 func (s *ScreenTile) Triangles() []int {
 	return s.trianglesBuffer
-}
-
-// minX, minY, maxX, maxY
-func (s *ScreenTile) Bounduries() (float32, float32, float32, float32) {
-	return s.minX, s.minY, s.maxX, s.maxY
 }
