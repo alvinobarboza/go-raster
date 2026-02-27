@@ -217,23 +217,45 @@ func main() {
 
 		rl.DrawText("raster", int32(rl.GetScreenWidth()-70), int32(rl.GetScreenHeight()-20), 20, shapes.Black)
 
-		rl.DrawRectangle(2, 2, 305, 250, rl.Fade(rl.DarkGray, 0.6))
-		rl.DrawRectangleLines(2, 2, 305, 250, rl.Gray)
+		w := int32(420)
+		h := int32(370)
+		rl.DrawRectangle(2, 2, w, h, rl.Fade(rl.Black, 0.6))
+		rl.DrawRectangleLines(2, 2, w, h, shapes.LightGray)
 
-		rl.DrawFPS(10, 10)
+		textSize := int32(20)
+		yOffSet := int32(10)
+		gap := int32(30)
+
+		rl.DrawFPS(10, yOffSet)
+		yOffSet += gap
 		rl.DrawText(
 			fmt.Sprintf(
-				"Cam: \nX:%01f \nY:%01f \nZ:%01f",
+				"Cam:\n X: %02.2f Y: %02.2f Z: %02.2f\n X: %02.2f' Y: %02.2f' Z: %02.2f'",
 				camera.Transforms.Position.X,
 				camera.Transforms.Position.Y,
-				camera.Transforms.Position.Z),
-			10, 50, 20, rl.White)
-		rl.DrawText("Move: A/W/S/D",
-			10, 140, 20, rl.White)
-		rl.DrawText("Mouse view moviment: \nTab to Lock/Unlock",
-			10, 163, 20, rl.White)
-		rl.DrawText("Depth toggle: Z", 10, 204, 20, rl.White)
-		rl.DrawText("Wireframe toggle: X", 10, 224, 20, rl.White)
+				camera.Transforms.Position.Z,
+				camera.Transforms.Rotation.X,
+				camera.Transforms.Rotation.Y,
+				camera.Transforms.Rotation.Z),
+			10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap * 3
+
+		rl.DrawText("Move: A/W/S/D", 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Lock/Unlock mouse: Tab = status: %v", !cursorEnabled), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Depth toggle: Z = status: %v", camera.RenderDepth), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Wireframe toggle: X = status: %v", camera.RenderWire), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Triangle AABB: T = status: %v", renderer.RenderTriangleBoundaries), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Render Tiles: B = status: %v", renderer.RenderTileBoundaries), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("Multithread: M = status: %v", renderer.RenderMultithreaded), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
+		rl.DrawText(fmt.Sprintf("(De)Increase tile size: Y/U = size: %v", renderer.TileSize()), 10, yOffSet, textSize, shapes.LightGray)
+		yOffSet += gap
 
 		rl.EndDrawing()
 	}

@@ -59,6 +59,10 @@ func NewRenderer(threads, tileSize uint) *Renderer {
 	return r
 }
 
+func (r *Renderer) TileSize() uint {
+	return r.tileSize
+}
+
 func (r *Renderer) IncrementTileSize(unit int) {
 	r.tileSize += uint(unit)
 	r.UpdateTiles()
