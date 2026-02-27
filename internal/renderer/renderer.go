@@ -184,7 +184,7 @@ func (r *Renderer) assignTrianglesToTiles() {
 	for i, t := range r.trianglesBuffer {
 
 		for j := range r.tiles {
-			if r.tiles[j].TileTriangleCollision(t.Aabb2) {
+			if r.tiles[j].TileTriangleCollision(t.SPV0, t.SPV1, t.SPV2, t.Aabb2) {
 				r.tiles[j].AddTriangle(i)
 				r.tiles[j].IsActive = true
 			}
