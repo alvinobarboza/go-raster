@@ -40,7 +40,7 @@ type FullTriangle struct {
 	N2z transforms.Vec3
 	N3z transforms.Vec3
 
-	MinX, MinY, MaxX, MaxY float32
+	Aabb2 AABB2
 
 	DepthZ1, DepthZ2, DepthZ3 float32
 

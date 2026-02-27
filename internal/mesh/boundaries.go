@@ -35,3 +35,15 @@ func (s *BoundingSphere) CalculateBoundaries(verts []transforms.Vec3, scale tran
 		}
 	}
 }
+
+type AABB2 struct {
+	Min transforms.Vec2
+	Max transforms.Vec2
+}
+
+func NewAABB2(minx, miny, maxx, maxy float32) AABB2 {
+	return AABB2{
+		Min: transforms.NewVec2(minx, miny),
+		Max: transforms.NewVec2(maxx, maxy),
+	}
+}

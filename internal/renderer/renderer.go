@@ -137,18 +137,18 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 			tri := r.trianglesBuffer[i]
 
 			// check to only run in tile bounds
-			tri.MinY = maths.Maxf(tri.MinY, mnY)
-			tri.MaxY = maths.Minf(tri.MaxY, mxY)
+			tri.Aabb2.Min.Y = maths.Maxf(tri.Aabb2.Min.Y, mnY)
+			tri.Aabb2.Max.Y = maths.Minf(tri.Aabb2.Max.Y, mxY)
 
-			tri.MinX = maths.Maxf(tri.MinX, mnX)
-			tri.MaxX = maths.Minf(tri.MaxX, mxX)
+			tri.Aabb2.Min.X = maths.Maxf(tri.Aabb2.Min.X, mnX)
+			tri.Aabb2.Max.X = maths.Minf(tri.Aabb2.Max.X, mxX)
 
 			r.RenderTriangle(tri)
 			if r.RenderTriangleBoundaries {
-				r.DrawLine(transforms.Vec2{X: tri.MinX, Y: tri.MinY}, transforms.Vec2{X: tri.MinX, Y: tri.MaxY}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.MinX, Y: tri.MaxY}, transforms.Vec2{X: tri.MaxX, Y: tri.MaxY}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.MaxX, Y: tri.MaxY}, transforms.Vec2{X: tri.MaxX, Y: tri.MinY}, shapes.Green)
-				r.DrawLine(transforms.Vec2{X: tri.MaxX, Y: tri.MinY}, transforms.Vec2{X: tri.MinX, Y: tri.MinY}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Max.Y}, transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
+				r.DrawLine(transforms.Vec2{X: tri.Aabb2.Max.X, Y: tri.Aabb2.Min.Y}, transforms.Vec2{X: tri.Aabb2.Min.X, Y: tri.Aabb2.Min.Y}, shapes.Green)
 			}
 		}
 
@@ -160,7 +160,7 @@ func (r *Renderer) assignTrianglesToTiles() {
 	for i, t := range r.trianglesBuffer {
 
 		for j := range r.tiles {
-			if r.tiles[j].TileTriangleCollision(t.MinX, t.MinY, t.MaxX, t.MaxY) {
+			if r.tiles[j].TileTriangleCollision(t.Aabb2.Min.X, t.Aabb2.Min.Y, t.Aabb2.Max.X, t.Aabb2.Max.Y) {
 				r.tiles[j].AddTriangle(i)
 				r.tiles[j].IsActive = true
 			}
@@ -198,7 +198,7 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 	area = 1 / area
 
 	// pixel's center
-	p := transforms.Vec2{X: triangle.MinX + 0.5, Y: triangle.MinY + 0.5}
+	p := transforms.Vec2{X: triangle.Aabb2.Min.X + 0.5, Y: triangle.Aabb2.Min.Y + 0.5}
 
 	w0Row := mesh.EdgeCross(triangle.SPV0, triangle.SPV1, p) + bias0
 	w1Row := mesh.EdgeCross(triangle.SPV1, triangle.SPV2, p) + bias1
@@ -221,12 +221,12 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 		w2 = v2 -> v0 distance to v1 = b = tri.v2
 		w0 = v0 -> v1 distance to v2 = c = tri.v3
 	*/
-	for y := triangle.MinY; y <= triangle.MaxY; y++ {
+	for y := triangle.Aabb2.Min.Y; y <= triangle.Aabb2.Max.Y; y++ {
 		w0 := w0Row
 		w1 := w1Row
 		w2 := w2Row
 
-		for x := triangle.MinX; x <= triangle.MaxX; x++ {
+		for x := triangle.Aabb2.Min.X; x <= triangle.Aabb2.Max.X; x++ {
 			if w0 >= 0 && w1 >= 0 && w2 >= 0 {
 				alpha := w1 * area
 				beta := w2 * area
