@@ -59,9 +59,28 @@ func NewRenderer(threads, tileSize uint) *Renderer {
 	return r
 }
 
+func (r *Renderer) IncrementTileSize(unit int) {
+	r.tileSize += uint(unit)
+	r.UpdateTiles()
+}
+
 func (r *Renderer) UpdateTiles() {
 	if r.tileSize > r.scene.ActiveCam.Width {
 		r.tileSize = r.scene.ActiveCam.Width / 2
+	}
+
+	if r.tileSize < MinimumTileSize {
+		r.tileSize = MinimumTileSize
+	}
+
+	if r.tiles != nil {
+		r.tiles = RecalculateTiles(
+			float32(r.scene.ActiveCam.Width),
+			float32(r.scene.ActiveCam.Height),
+			float32(r.tileSize),
+			r.biggestTriCount,
+			r.tiles,
+		)
 	}
 
 	r.tiles = NewTileSet(

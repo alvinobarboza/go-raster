@@ -76,7 +76,7 @@ func main() {
 	leftRightCam := float32(0.0)
 	upDownCam := float32(0.0)
 
-	rl.SetTargetFPS(90)
+	rl.SetTargetFPS(40)
 	rl.DisableCursor()
 	cursorEnabled := false
 
@@ -180,6 +180,14 @@ func main() {
 
 		if rl.IsKeyPressed(rl.KeyB) {
 			renderer.ToggleTileBoundaryRender()
+		}
+
+		if rl.IsKeyPressed(rl.KeyY) {
+			renderer.IncrementTileSize(20)
+		}
+
+		if rl.IsKeyPressed(rl.KeyU) {
+			renderer.IncrementTileSize(-20)
 		}
 
 		mouseDelta := rl.GetMouseDelta()
