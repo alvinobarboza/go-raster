@@ -117,9 +117,7 @@ func (r *Renderer) DrawWireframeTriangle(t mesh.FullTriangle) {
 
 func (r *Renderer) drawTileBoundaries() {
 	for i := range r.tiles {
-		triangles := r.tiles[i].Triangles()
-
-		if len(triangles) > 0 {
+		if r.tiles[i].IsActive {
 			mnX, mnY, mxX, mxY := r.tiles[i].Bounduries()
 			r.DrawLine(transforms.Vec2{X: mnX, Y: mnY}, transforms.Vec2{X: mnX, Y: mxY}, shapes.White)
 			r.DrawLine(transforms.Vec2{X: mnX, Y: mxY}, transforms.Vec2{X: mxX, Y: mxY}, shapes.White)
@@ -160,9 +158,11 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 
 func (r *Renderer) assignTrianglesToTiles() {
 	for i, t := range r.trianglesBuffer {
-		for _, st := range r.tiles {
-			if st.TileTriangleCollision(t.MinX, t.MinY, t.MaxX, t.MaxY) {
-				st.AddTriangle(i)
+
+		for j := range r.tiles {
+			if r.tiles[j].TileTriangleCollision(t.MinX, t.MinY, t.MaxX, t.MaxY) {
+				r.tiles[j].AddTriangle(i)
+				r.tiles[j].IsActive = true
 			}
 		}
 	}
@@ -375,9 +375,6 @@ func (r *Renderer) renderMeshs() {
 				}
 
 				r.assignTrianglesToTiles()
-				if r.RenderTileBoundaries {
-					r.drawTileBoundaries()
-				}
 
 				r.wg.Add(len(r.tiles))
 				for i := range r.tiles {
@@ -392,7 +389,13 @@ func (r *Renderer) renderMeshs() {
 
 func (r *Renderer) Render() {
 	r.scene.ActiveCam.ClearCanvas()
+	for i := range r.tiles {
+		r.tiles[i].IsActive = false
+	}
 	r.renderMeshs()
+	if r.RenderTileBoundaries {
+		r.drawTileBoundaries()
+	}
 }
 
 func (r *Renderer) ToggleMultithreaded() {
