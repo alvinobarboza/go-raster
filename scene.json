@@ -25,8 +25,8 @@
         "position": { "x": -0.2, "y": 0.97, "z": 0.7 },
         "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
         "scale": { "x": 0.1, "y": 0.1, "z": 0.1 },
-        "windingReorder": true,
-        "zNegative": true,
+        "windingReorder": false,
+        "zNegative": false,
         "flipNormals": false
     },
     {
