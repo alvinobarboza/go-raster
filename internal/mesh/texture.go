@@ -18,5 +18,6 @@ func (t *Texture) TexelColor(uv transforms.Vec2) color.RGBA {
 	w := int(uv.X*t.fWidth) & t.widthMask
 	h := int(uv.Y*t.fHeight) & t.heightMask
 
-	return t.pixels[h*t.width+w]
+	i := h*t.width + w
+	return t.pixels[i]
 }
