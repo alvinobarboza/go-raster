@@ -80,7 +80,7 @@ func main() {
 	leftRightCam := float32(0.0)
 	upDownCam := float32(0.0)
 
-	rl.SetTargetFPS(60)
+	rl.SetTargetFPS(30) // FOR ME - only change after implementing litghing and shadows
 	rl.DisableCursor()
 	cursorEnabled := false
 
