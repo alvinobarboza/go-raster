@@ -1,10 +1,10 @@
 [
     {
-        "meshpath": "./assets/sky.obj",
-        "meshtexturepath": "./assets/sky.png",
+        "meshpath": "./assets/AllSkyFree_v1/sky.obj",
+        "meshtexturepath": "./assets/AllSkyFree_v1/sky.png",
         "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
         "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "scale": { "x": 0.1, "y": 0.1, "z": 0.1 },
+        "scale": { "x": 0.9, "y": 0.9, "z": 0.9 },
         "windingReorder": true,
         "zNegative": false,
         "flipNormals": true
