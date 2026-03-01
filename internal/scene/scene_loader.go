@@ -47,7 +47,8 @@ func LoadSceneFromJSON(filePath string) ([]mesh.Model, error) {
 			return nil, fmt.Errorf("failed to load asset %s: %w", m.MeshPath, err)
 		}
 
-		fmt.Printf("tris: %d verts: %d\n", len(meshData.Tris), len(meshData.Verts))
+		fmt.Printf("tris: %d verts: %d norm: %d\n",
+			len(meshData.Tris), len(meshData.Verts), len(meshData.Normals))
 
 		transforms := transforms.NewTransforms(
 			transforms.NewVec3(m.Position.X, m.Position.Y, m.Position.Z),
