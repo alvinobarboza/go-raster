@@ -19,7 +19,10 @@ const (
 	ScreenHeight = 1080
 
 	NearPlane = 0.2
-	FarPlane  = 25
+	FarPlane  = 100
+
+	Threads  = 4
+	TileSize = 140
 )
 
 func main() {
@@ -54,7 +57,7 @@ func main() {
 		s.AddMesh(&models[i])
 	}
 
-	renderer := renderer.NewRenderer(8, 200)
+	renderer := renderer.NewRenderer(Threads, TileSize)
 	renderer.AddActiveScene(s)
 	renderer.RenderMultithreaded = false
 
@@ -77,7 +80,7 @@ func main() {
 	leftRightCam := float32(0.0)
 	upDownCam := float32(0.0)
 
-	rl.SetTargetFPS(40)
+	rl.SetTargetFPS(60)
 	rl.DisableCursor()
 	cursorEnabled := false
 

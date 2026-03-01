@@ -1,5 +1,15 @@
 [
     {
+        "meshpath": "./assets/sky.obj",
+        "meshtexturepath": "./assets/sky.png",
+        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "scale": { "x": 0.1, "y": 0.1, "z": 0.1 },
+        "windingReorder": true,
+        "zNegative": false,
+        "flipNormals": true
+    },
+    {
         "meshpath": "./assets/polyhaven_rico_b3d/marble_bust.obj",
         "meshtexturepath": "./assets/polyhaven_rico_b3d/marble_bust.jpg",
         "position": { "x": -0.8, "y": 0.97, "z": 0.9 },
