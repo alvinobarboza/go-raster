@@ -7,16 +7,18 @@ import (
 )
 
 type Scene struct {
-	ActiveCam *camera.Camera
-	Objects   []*mesh.Model
-	Lights    []lighting.Light
+	ActiveCam            *camera.Camera
+	Objects              []*mesh.Model
+	Lights               []lighting.Light
+	AmbientLightStrength float32 // maybe later I"ll add an envioriment struct wiht skybox, this and others
 }
 
 func NewScene(c *camera.Camera) *Scene {
 	return &Scene{
-		ActiveCam: c,
-		Objects:   make([]*mesh.Model, 0),
-		Lights:    make([]lighting.Light, 0),
+		ActiveCam:            c,
+		Objects:              make([]*mesh.Model, 0),
+		Lights:               make([]lighting.Light, 0),
+		AmbientLightStrength: 0.1, // fixed for now
 	}
 }
 

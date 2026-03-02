@@ -88,3 +88,12 @@ func (v Vec3) LerpTo(b Vec3, ratio float32) Vec3 {
 func (v Vec3) Print(name string) {
 	fmt.Printf("%s = %+v\n", name, v)
 }
+
+func ReflectRay(ray, normal Vec3) Vec3 {
+	r_dot_n := ray.DotByVec3(normal)
+	return Vec3{
+		X: 2*normal.X*r_dot_n - ray.X,
+		Y: 2*normal.Y*r_dot_n - ray.Y,
+		Z: 2*normal.Z*r_dot_n - ray.Z,
+	}
+}

@@ -3,6 +3,7 @@ package renderer
 import (
 	"fmt"
 	"image/color"
+	"math"
 	"sync"
 
 	"github.com/alvinobarboza/go-raster/internal/maths"
@@ -292,24 +293,28 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 						n3 := triangle.N3z.Scale(gama)
 
 						nCoord := n1.Add(n2).Add(n3).Divide(depth).Normalized()
+						viewDir := r.scene.ActiveCam.NDCToVertexRay(r.scene.ActiveCam.ScreenToNDC(x, y))
+						viewDir = r.scene.ActiveCam.Transforms.RotationMat.MultiplyByVec3(viewDir)
 
+						// TODO: specular
+						specularStrength := float32(0.5)
+						result := transforms.NewVec3(0, 0, 0)
 						for _, l := range r.scene.Lights {
-							lightIntensity := nCoord.DotByVec3(l.DirectionWorld)
-							lightIntensity *= l.IntesityMultiplier
-							if lightIntensity > .2 {
-								if lightIntensity > 1 {
-									lightIntensity = 1
-								}
-								pColor.R = uint8(float32(pColor.R) * lightIntensity)
-								pColor.G = uint8(float32(pColor.G) * lightIntensity)
-								pColor.B = uint8(float32(pColor.B) * lightIntensity)
-							} else {
-								pColor.R = uint8(float32(pColor.R) * 0.2)
-								pColor.G = uint8(float32(pColor.G) * 0.2)
-								pColor.B = uint8(float32(pColor.B) * 0.2)
-							}
+							ambient := l.Color.Scale(r.scene.AmbientLightStrength)
+
+							lightIntensity := maths.Maxf(nCoord.DotByVec3(l.DirectionWorld), 0)
+							diff := l.Color.Scale(lightIntensity)
+
+							reflectDir := transforms.ReflectRay(l.DirectionWorld.Scale(-1), nCoord)
+							spec := math.Pow(float64(maths.Maxf(viewDir.DotByVec3(reflectDir), 0.0)), 32)
+							specular := l.Color.Scale(specularStrength * float32(spec))
+
+							result = diff.Add(result).Add(ambient).Add(specular)
 						}
 
+						pColor.R = uint8(float32(pColor.R) * maths.Minf(result.X, 1))
+						pColor.G = uint8(float32(pColor.G) * maths.Minf(result.Y, 1))
+						pColor.B = uint8(float32(pColor.B) * maths.Minf(result.Z, 1))
 					}
 
 					r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)

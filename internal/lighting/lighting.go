@@ -1,6 +1,10 @@
 package lighting
 
-import "github.com/alvinobarboza/go-raster/internal/transforms"
+import (
+	"image/color"
+
+	"github.com/alvinobarboza/go-raster/internal/transforms"
+)
 
 type LightType uint
 
@@ -9,17 +13,21 @@ const (
 )
 
 type Light struct {
-	LightType          LightType
-	IntesityMultiplier float32
+	LightType LightType
+	Color     transforms.Vec3
 
 	Direction      transforms.Vec3
 	DirectionWorld transforms.Vec3
 }
 
-func NewLight(t LightType, i float32, d transforms.Vec3) Light {
+func NewLight(t LightType, d transforms.Vec3, color color.RGBA) Light {
 	return Light{
-		LightType:          t,
-		IntesityMultiplier: i,
-		Direction:          d.Normalized(),
+		LightType: t,
+		Direction: d.Normalized(),
+		Color: transforms.NewVec3(
+			float32(color.R)/255,
+			float32(color.G)/255,
+			float32(color.B)/255,
+		),
 	}
 }

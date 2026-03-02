@@ -94,6 +94,17 @@ func (c *Camera) NDCtoScreen(p transforms.Vec2) transforms.Vec2 {
 	}
 }
 
+func (c *Camera) ScreenToNDC(x, y float32) transforms.Vec2 {
+	return transforms.Vec2{
+		X: (x / c.HalfWidth) - 1,
+		Y: 1 - (y / c.HalfHeight),
+	}
+}
+
+func (c *Camera) NDCToVertexRay(p transforms.Vec2) transforms.Vec3 {
+	return transforms.NewVec3((p.X*c.AspectRatio)/c.FovScaling, p.Y/c.FovScaling, 1).Normalized()
+}
+
 func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t *mesh.Texture) mesh.FullTriangle {
 	triangle := mesh.NewFullTriangle(v1, v2, v3, t)
 
