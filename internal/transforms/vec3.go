@@ -38,7 +38,12 @@ func (v Vec3) Divide(n float32) Vec3 {
 	if n == 0 {
 		return Vec3{}
 	}
-	return v.Scale(1 / n)
+
+	return Vec3{
+		X: v.X / n,
+		Y: v.Y / n,
+		Z: v.Z / n,
+	}
 }
 
 func (v Vec3) Normalized() Vec3 {

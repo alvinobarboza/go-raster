@@ -3,6 +3,7 @@ package transforms
 import (
 	"log"
 	"math"
+	"math/rand/v2"
 	"testing"
 )
 
@@ -78,18 +79,34 @@ func DivideVec3(v Vec3, n float32) Vec3 {
 	}
 }
 
-func BenchmarkDivision(b *testing.B) {
-	v := NewVec3(2, 4, 5)
-	for b.Loop() {
-		v = DivideVec3(v, 5)
+func DivideRVec3(v Vec3, n float32) Vec3 {
+	if n == 0 {
+		return NewVec3(0, 0, 0)
+	}
+
+	n = 1 / n
+
+	return Vec3{
+		X: v.X * n,
+		Y: v.Y * n,
+		Z: v.Z * n,
 	}
 }
 
-func BenchmarkReciprocal(b *testing.B) {
-	v := NewVec3(2, 4, 5)
-	for b.Loop() {
-		v = v.Divide(5)
-	}
+func BenchmarkDivision(b *testing.B) {
+	b.Run("division", func(b *testing.B) {
+		v := NewVec3(2, 4, 5)
+		for b.Loop() {
+			DivideVec3(v, rand.Float32()*100+1)
+		}
+	})
+
+	b.Run("reciprocal", func(b *testing.B) {
+		v := NewVec3(2, 4, 5)
+		for b.Loop() {
+			DivideRVec3(v, rand.Float32()*100+1)
+		}
+	})
 }
 
 type Matrix64 [M4x4]float64

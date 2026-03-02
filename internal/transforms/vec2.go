@@ -37,7 +37,10 @@ func (v Vec2) Divide(n float32) Vec2 {
 	if n == 0 {
 		return Vec2{}
 	}
-	return v.Scale(1 / n)
+	return Vec2{
+		X: v.X / n,
+		Y: v.Y / n,
+	}
 }
 
 func (v Vec2) Normalized() Vec2 {
