@@ -33,6 +33,7 @@ type Renderer struct {
 	RenderTileBoundaries     bool
 	RenderTriangleBoundaries bool
 	RenderMultithreaded      bool
+	RenderLight              bool
 }
 
 // init after loading models,
@@ -261,6 +262,7 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 		w2 = v2 -> v0 distance to v1 = b = tri.v2
 		w0 = v0 -> v1 distance to v2 = c = tri.v3
 	*/
+
 	for y := triangle.Aabb2.Min.Y; y < triangle.Aabb2.Max.Y; y++ {
 		w0 := w0Row
 		w1 := w1Row
@@ -281,7 +283,34 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 					uv3 := triangle.UV3z.Scale(gama)
 
 					uvCoord := uv1.Add(uv2).Add(uv3).Divide(depth)
+
 					pColor := triangle.Texture.TexelColor(uvCoord)
+
+					if r.RenderLight {
+						n1 := triangle.N1z.Scale(alpha)
+						n2 := triangle.N2z.Scale(beta)
+						n3 := triangle.N3z.Scale(gama)
+
+						nCoord := n1.Add(n2).Add(n3).Divide(depth).Normalized()
+
+						for _, l := range r.scene.Lights {
+							lightIntensity := nCoord.DotByVec3(l.DirectionWorld)
+							lightIntensity *= l.IntesityMultiplier
+							if lightIntensity > .2 {
+								if lightIntensity > 1 {
+									lightIntensity = 1
+								}
+								pColor.R = uint8(float32(pColor.R) * lightIntensity)
+								pColor.G = uint8(float32(pColor.G) * lightIntensity)
+								pColor.B = uint8(float32(pColor.B) * lightIntensity)
+							} else {
+								pColor.R = uint8(float32(pColor.R) * 0.2)
+								pColor.G = uint8(float32(pColor.G) * 0.2)
+								pColor.B = uint8(float32(pColor.B) * 0.2)
+							}
+						}
+
+					}
 
 					r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)
 				}
@@ -402,6 +431,13 @@ func (r *Renderer) singlethreadRender() {
 }
 
 func (r *Renderer) renderMeshs() {
+
+	for i := range r.scene.Lights {
+		// rotate and invert, as the dot expects the normal to be aligned wiht the light, in other worlds,
+		// light normal is opposit of its direction
+		r.scene.Lights[i].DirectionWorld = r.scene.ActiveCam.Transforms.RotationMat.MultiplyByVec3(r.scene.Lights[i].Direction).Normalized().Scale(-1)
+	}
+
 	for _, o := range r.scene.Objects {
 		matTransform := r.scene.ActiveCam.Transforms.MatrixTransforms.MultiplyByMatrix(o.Transforms.MatrixTransforms)
 		matRoation := r.scene.ActiveCam.Transforms.RotationMat.MultiplyByMatrix(o.Transforms.RotationMat)
@@ -502,4 +538,8 @@ func (r *Renderer) ToggleTileBoundaryRender() {
 
 func (r *Renderer) ToggleTriangleBoundaryRender() {
 	r.RenderTriangleBoundaries = !r.RenderTriangleBoundaries
+}
+
+func (r *Renderer) ToggleLight() {
+	r.RenderLight = !r.RenderLight
 }

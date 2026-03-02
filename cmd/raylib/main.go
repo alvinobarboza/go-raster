@@ -7,6 +7,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/alvinobarboza/go-raster/internal/camera"
+	"github.com/alvinobarboza/go-raster/internal/lighting"
 	"github.com/alvinobarboza/go-raster/internal/renderer"
 	"github.com/alvinobarboza/go-raster/internal/scene"
 	"github.com/alvinobarboza/go-raster/internal/shapes"
@@ -32,7 +33,7 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	factor := 1
+	factor := 2
 	sensitivity := float32(10)
 	fov := float32(53)
 	camera := camera.NewCamera(
@@ -56,6 +57,11 @@ func main() {
 	for i := range models {
 		s.AddMesh(&models[i])
 	}
+
+	s.AddLight(lighting.NewLight(
+		lighting.Directional,
+		1.5, transforms.NewVec3(1, -1, 0),
+	))
 
 	renderer := renderer.NewRenderer(Threads, TileSize)
 	renderer.AddActiveScene(s)
@@ -184,6 +190,10 @@ func main() {
 
 		if rl.IsKeyPressed(rl.KeyB) {
 			renderer.ToggleTileBoundaryRender()
+		}
+
+		if rl.IsKeyPressed(rl.KeyL) {
+			renderer.ToggleLight()
 		}
 
 		if rl.IsKeyPressed(rl.KeyY) {

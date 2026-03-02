@@ -113,9 +113,9 @@ func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t *mesh.Texture)
 	triangle.UV2z = v2.U.Scale(triangle.DepthZ2)
 	triangle.UV3z = v3.U.Scale(triangle.DepthZ3)
 
-	// triangle.N1z = v1.N.Scale(triangle.DepthZ1)
-	// triangle.N2z = v2.N.Scale(triangle.DepthZ2)
-	// triangle.N3z = v3.N.Scale(triangle.DepthZ3)
+	triangle.N1z = v1.N.Scale(triangle.DepthZ1)
+	triangle.N2z = v2.N.Scale(triangle.DepthZ2)
+	triangle.N3z = v3.N.Scale(triangle.DepthZ3)
 
 	triangle.Aabb2 = mesh.NewAABB2(
 		maths.Floor32(maths.Minf(triangle.SPV0.X, maths.Minf(triangle.SPV1.X, triangle.SPV2.X))),
