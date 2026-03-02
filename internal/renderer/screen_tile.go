@@ -16,7 +16,7 @@ type ScreenTile struct {
 
 	trianglesBuffer []int
 
-	IsActive bool
+	IsActive, WasActivatedOnce bool
 }
 
 func NewScreenTile(w, h, fw, fh, offx, offy float32, buffSize int) *ScreenTile {

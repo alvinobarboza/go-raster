@@ -24,8 +24,9 @@ type Renderer struct {
 	sHinputList     []mesh.ClippedVertex
 	trianglesBuffer []mesh.FullTriangle
 
-	tiles    []*ScreenTile
-	tileSize uint
+	tiles      []*ScreenTile
+	tilesInUse []int
+	tileSize   uint
 
 	biggestTriCount int
 
@@ -85,6 +86,8 @@ func (r *Renderer) UpdateTiles() {
 			r.biggestTriCount,
 			r.tiles,
 		)
+		r.tilesInUse = make([]int, len(r.tiles))
+		return
 	}
 
 	r.tiles = NewTileSet(
@@ -93,6 +96,8 @@ func (r *Renderer) UpdateTiles() {
 		float32(r.tileSize),
 		r.biggestTriCount,
 	)
+
+	r.tilesInUse = make([]int, len(r.tiles))
 }
 
 func (r *Renderer) AddActiveScene(s *scene.Scene) {
@@ -174,7 +179,7 @@ func (r *Renderer) DrawTriangleBoundaryFromBuff() {
 
 func (r *Renderer) drawTileBoundaries() {
 	for i := range r.tiles {
-		if r.tiles[i].IsActive {
+		if r.tiles[i].WasActivatedOnce {
 			r.drawAABB(r.tiles[i].Aabb, shapes.White)
 		}
 	}
@@ -200,18 +205,6 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 		}
 
 		r.wg.Done()
-	}
-}
-
-func (r *Renderer) assignTrianglesToTiles() {
-	for i, t := range r.trianglesBuffer {
-
-		for j := range r.tiles {
-			if r.tiles[j].TileTriangleCollision(t.SPV0, t.SPV1, t.SPV2, t.Aabb2) {
-				r.tiles[j].AddTriangle(i)
-				r.tiles[j].IsActive = true
-			}
-		}
 	}
 }
 
@@ -304,6 +297,110 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 	}
 }
 
+// Sutherland–Hodgman algorithm
+func (r *Renderer) clipTriangles() {
+	for _, plane := range r.scene.ActiveCam.Frustum.Planes {
+		r.sHinputList, r.sHoutputList = r.sHoutputList, r.sHinputList[:0]
+
+		prevI := 0
+		for i := range len(r.sHinputList) {
+			prevI = i - 1
+			if prevI < 0 {
+				prevI = len(r.sHinputList) - 1
+			}
+			currentPoint := r.sHinputList[i]
+			prevPoint := r.sHinputList[prevI]
+
+			cp := plane.SignedDistanceToPoint(currentPoint.V)
+			pp := plane.SignedDistanceToPoint(prevPoint.V)
+
+			if cp > 0 {
+				if pp <= 0 {
+					ratio := cp / (cp - pp)
+					intersection := mesh.ClippedVertex{
+						V: currentPoint.V.LerpTo(prevPoint.V, ratio),
+						N: currentPoint.N.LerpTo(prevPoint.N, ratio),
+						U: currentPoint.U.LerpTo(prevPoint.U, ratio),
+					}
+					r.sHoutputList = append(r.sHoutputList, intersection)
+				}
+				r.sHoutputList = append(r.sHoutputList, currentPoint)
+			} else if pp > 0 {
+				ratio := cp / (cp - pp)
+				intersection := mesh.ClippedVertex{
+					V: currentPoint.V.LerpTo(prevPoint.V, ratio),
+					N: currentPoint.N.LerpTo(prevPoint.N, ratio),
+					U: currentPoint.U.LerpTo(prevPoint.U, ratio),
+				}
+				r.sHoutputList = append(r.sHoutputList, intersection)
+			}
+		}
+	}
+}
+
+func (r *Renderer) assignTrianglesToTiles() {
+	for i, t := range r.trianglesBuffer {
+		for j := range r.tiles {
+			if r.tiles[j].TileTriangleCollision(t.SPV0, t.SPV1, t.SPV2, t.Aabb2) {
+				r.tiles[j].AddTriangle(i)
+				r.tiles[j].IsActive = true
+				r.tiles[j].WasActivatedOnce = true
+			}
+		}
+	}
+	for j := range r.tiles {
+		if r.tiles[j].IsActive {
+			r.tilesInUse = append(r.tilesInUse, j)
+		}
+	}
+}
+
+func (r *Renderer) activateTiles() {
+	r.wg.Add(len(r.tilesInUse))
+	for _, i := range r.tilesInUse {
+		r.indexes <- i
+	}
+	r.wg.Wait()
+}
+
+func (r *Renderer) multithreadRender() {
+	if len(r.trianglesBuffer) > 0 {
+		for i := range r.tiles {
+			r.tiles[i].ResetBuff()
+			r.tiles[i].IsActive = false
+		}
+		r.tilesInUse = r.tilesInUse[:0]
+
+		r.assignTrianglesToTiles()
+
+		r.activateTiles()
+
+		if r.scene.ActiveCam.RenderWire {
+			r.DrawWireframeTriangleFromBuff()
+		}
+
+		if r.RenderTriangleBoundaries {
+			r.DrawTriangleBoundaryFromBuff()
+		}
+	}
+}
+
+func (r *Renderer) singlethreadRender() {
+	for _, t := range r.trianglesBuffer {
+		r.RenderTriangle(t)
+	}
+	if r.scene.ActiveCam.RenderWire {
+		for _, t := range r.trianglesBuffer {
+			r.DrawWireframeTriangle(t)
+		}
+	}
+	if r.RenderTriangleBoundaries {
+		for _, t := range r.trianglesBuffer {
+			r.DrawTriangleBoundary(t)
+		}
+	}
+}
+
 func (r *Renderer) renderMeshs() {
 	for _, o := range r.scene.Objects {
 		matTransform := r.scene.ActiveCam.Transforms.MatrixTransforms.MultiplyByMatrix(o.Transforms.MatrixTransforms)
@@ -315,16 +412,16 @@ func (r *Renderer) renderMeshs() {
 			continue
 		}
 
+		for i := range len(o.Mesh.Verts) {
+			o.Mesh.VertsWorld[i] = matTransform.MultiplyByVec3(o.Mesh.Verts[i])
+		}
+
+		for i := range len(o.Mesh.Normals) {
+			o.Mesh.NormalsWorld[i] = matRoation.MultiplyByVec3(o.Mesh.Normals[i])
+		}
+
 		r.trianglesBuffer = r.trianglesBuffer[:0]
 		for _, t := range o.Mesh.Tris {
-			o.Mesh.VertsWorld[t.V1] = matTransform.MultiplyByVec3(o.Mesh.Verts[t.V1])
-			o.Mesh.VertsWorld[t.V2] = matTransform.MultiplyByVec3(o.Mesh.Verts[t.V2])
-			o.Mesh.VertsWorld[t.V3] = matTransform.MultiplyByVec3(o.Mesh.Verts[t.V3])
-
-			o.Mesh.NormalsWorld[t.N1] = matRoation.MultiplyByVec3(o.Mesh.Normals[t.N1])
-			o.Mesh.NormalsWorld[t.N2] = matRoation.MultiplyByVec3(o.Mesh.Normals[t.N2])
-			o.Mesh.NormalsWorld[t.N3] = matRoation.MultiplyByVec3(o.Mesh.Normals[t.N3])
-
 			if !t.BackFaceCulling(o.Mesh.VertsWorld, o.Mesh.NormalsWorld) {
 				continue
 			}
@@ -354,44 +451,7 @@ func (r *Renderer) renderMeshs() {
 			r.sHoutputList = append(r.sHoutputList, v2)
 			r.sHoutputList = append(r.sHoutputList, v3)
 
-			// Sutherland–Hodgman algorithm
-			for _, plane := range r.scene.ActiveCam.Frustum.Planes {
-				r.sHinputList, r.sHoutputList = r.sHoutputList, r.sHinputList[:0]
-
-				prevI := 0
-				for i := range len(r.sHinputList) {
-					prevI = i - 1
-					if prevI < 0 {
-						prevI = len(r.sHinputList) - 1
-					}
-					currentPoint := r.sHinputList[i]
-					prevPoint := r.sHinputList[prevI]
-
-					cp := plane.SignedDistanceToPoint(currentPoint.V)
-					pp := plane.SignedDistanceToPoint(prevPoint.V)
-
-					if cp > 0 {
-						if pp <= 0 {
-							ratio := cp / (cp - pp)
-							intersection := mesh.ClippedVertex{
-								V: currentPoint.V.LerpTo(prevPoint.V, ratio),
-								N: currentPoint.N.LerpTo(prevPoint.N, ratio),
-								U: currentPoint.U.LerpTo(prevPoint.U, ratio),
-							}
-							r.sHoutputList = append(r.sHoutputList, intersection)
-						}
-						r.sHoutputList = append(r.sHoutputList, currentPoint)
-					} else if pp > 0 {
-						ratio := cp / (cp - pp)
-						intersection := mesh.ClippedVertex{
-							V: currentPoint.V.LerpTo(prevPoint.V, ratio),
-							N: currentPoint.N.LerpTo(prevPoint.N, ratio),
-							U: currentPoint.U.LerpTo(prevPoint.U, ratio),
-						}
-						r.sHoutputList = append(r.sHoutputList, intersection)
-					}
-				}
-			}
+			r.clipTriangles()
 
 			if len(r.sHoutputList) > 2 {
 				for i := 1; i < len(r.sHoutputList)-1; i++ {
@@ -402,44 +462,15 @@ func (r *Renderer) renderMeshs() {
 						r.sHoutputList[i+1],
 						o.Mesh.Texture)
 
-					if r.RenderMultithreaded {
-						r.trianglesBuffer = append(r.trianglesBuffer, triangle)
-					} else {
-						r.RenderTriangle(triangle)
-
-						if r.scene.ActiveCam.RenderWire {
-							r.DrawWireframeTriangle(triangle)
-						}
-						if r.RenderTriangleBoundaries {
-							r.DrawTriangleBoundary(triangle)
-						}
-					}
+					r.trianglesBuffer = append(r.trianglesBuffer, triangle)
 				}
 			}
 		}
 
 		if r.RenderMultithreaded {
-			if len(r.trianglesBuffer) > 0 {
-				for i := range r.tiles {
-					r.tiles[i].ResetBuff()
-				}
-
-				r.assignTrianglesToTiles()
-
-				r.wg.Add(len(r.tiles))
-				for i := range r.tiles {
-					r.indexes <- i
-				}
-				r.wg.Wait()
-
-				if r.scene.ActiveCam.RenderWire {
-					r.DrawWireframeTriangleFromBuff()
-				}
-
-				if r.RenderTriangleBoundaries {
-					r.DrawTriangleBoundaryFromBuff()
-				}
-			}
+			r.multithreadRender()
+		} else {
+			r.singlethreadRender()
 		}
 		// break
 	}
@@ -447,11 +478,16 @@ func (r *Renderer) renderMeshs() {
 
 func (r *Renderer) Render() {
 	r.scene.ActiveCam.ClearCanvas()
-	for i := range r.tiles {
-		r.tiles[i].IsActive = false
+
+	if r.RenderMultithreaded {
+		for i := range r.tiles {
+			r.tiles[i].WasActivatedOnce = false
+		}
 	}
+
 	r.renderMeshs()
-	if r.RenderTileBoundaries {
+
+	if r.RenderMultithreaded && r.RenderTileBoundaries {
 		r.drawTileBoundaries()
 	}
 }
