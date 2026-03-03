@@ -120,6 +120,10 @@ func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t *mesh.Texture)
 	triangle.DepthZ2 = 1 / v2.V.Z
 	triangle.DepthZ3 = 1 / v3.V.Z
 
+	triangle.V1z = v1.V.Scale(triangle.DepthZ1)
+	triangle.V2z = v2.V.Scale(triangle.DepthZ2)
+	triangle.V3z = v3.V.Scale(triangle.DepthZ3)
+
 	triangle.UV1z = v1.U.Scale(triangle.DepthZ1)
 	triangle.UV2z = v2.U.Scale(triangle.DepthZ2)
 	triangle.UV3z = v3.U.Scale(triangle.DepthZ3)

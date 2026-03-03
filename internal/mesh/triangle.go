@@ -28,6 +28,10 @@ type FullTriangle struct {
 	V2 ClippedVertex
 	V3 ClippedVertex
 
+	V1z transforms.Vec3
+	V2z transforms.Vec3
+	V3z transforms.Vec3
+
 	SPV0 transforms.Vec2
 	SPV1 transforms.Vec2
 	SPV2 transforms.Vec2

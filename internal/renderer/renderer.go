@@ -3,7 +3,6 @@ package renderer
 import (
 	"fmt"
 	"image/color"
-	"math"
 	"sync"
 
 	"github.com/alvinobarboza/go-raster/internal/maths"
@@ -293,11 +292,15 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 						n3 := triangle.N3z.Scale(gama)
 
 						nCoord := n1.Add(n2).Add(n3).Divide(depth).Normalized()
-						viewDir := r.scene.ActiveCam.NDCToVertexRay(r.scene.ActiveCam.ScreenToNDC(x, y))
-						viewDir = r.scene.ActiveCam.Transforms.RotationMat.MultiplyByVec3(viewDir)
 
-						// TODO: specular
-						specularStrength := float32(0.5)
+						vz1 := triangle.V1z.Scale(alpha)
+						vz2 := triangle.V2z.Scale(beta)
+						vz3 := triangle.V3z.Scale(gama)
+
+						fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
+						viewDir := fragPos.Normalized().Scale(-1)
+
+						specularStrength := float32(1) // load from mesh data
 						result := transforms.NewVec3(0, 0, 0)
 						for _, l := range r.scene.Lights {
 							ambient := l.Color.Scale(r.scene.AmbientLightStrength)
@@ -305,9 +308,21 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							lightIntensity := maths.Maxf(nCoord.DotByVec3(l.DirectionWorld), 0)
 							diff := l.Color.Scale(lightIntensity)
 
-							reflectDir := transforms.ReflectRay(l.DirectionWorld.Scale(-1), nCoord)
-							spec := math.Pow(float64(maths.Maxf(viewDir.DotByVec3(reflectDir), 0.0)), 32)
-							specular := l.Color.Scale(specularStrength * float32(spec))
+							// specular
+							reflectDir := transforms.ReflectRay(l.DirectionWorld, nCoord).Normalized()
+							dot := maths.Maxf(viewDir.DotByVec3(reflectDir), 0.0)
+
+							// math.pow unrolled
+							x2 := dot * dot
+							x4 := x2 * x2
+							x8 := x4 * x4
+							x16 := x8 * x8
+							x32 := x16 * x16
+							x64 := x32 * x32
+
+							spec := x64
+							specular := l.Color.Scale(specularStrength * spec)
+							// specular
 
 							result = diff.Add(result).Add(ambient).Add(specular)
 						}
