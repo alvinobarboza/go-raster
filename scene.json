@@ -1,20 +1,20 @@
 [
     {
-        "meshpath": "./assets/polyhaven_rico_b3d/marble_bust.obj",
-        "meshtexturepath": "./assets/polyhaven_rico_b3d/marble_bust.jpg",
-        "position": { "x": 0, "y": 0.97, "z": 0.9 },
-        "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "scale": { "x": 0.7, "y": 0.7, "z": 0.7 },
-        "windingReorder": true,
-        "zNegative": true,
-        "flipNormals": false
-    },
-    {
         "meshpath": "./assets/psx_pizza_doggy/table_large_2.obj",
         "meshtexturepath": "./assets/psx_pizza_doggy/wood_3.png",
         "position": { "x": 0.0, "y": 0.0, "z": 1.0 },
         "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
         "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },
+        "windingReorder": true,
+        "zNegative": true,
+        "flipNormals": false
+    },
+    {
+        "meshpath": "./assets/polyhaven_rico_b3d/marble_bust.obj",
+        "meshtexturepath": "./assets/polyhaven_rico_b3d/marble_bust.jpg",
+        "position": { "x": 0, "y": 0.97, "z": 0.9 },
+        "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "scale": { "x": 0.7, "y": 0.7, "z": 0.7 },
         "windingReorder": true,
         "zNegative": true,
         "flipNormals": false
