@@ -43,8 +43,8 @@ func main() {
 		NearPlane,
 		FarPlane,
 		fov,
-		transforms.NewVec3(0.43, 1.4, 0.6),
-		transforms.NewVec3(-40, 40, 0),
+		transforms.NewVec3(0, 1.2, 0),
+		transforms.NewVec3(0, 0, 0),
 	)
 
 	s := scene.NewScene(camera)
@@ -54,9 +54,10 @@ func main() {
 		panic(err)
 	}
 
-	for i := range models {
-		s.AddMesh(&models[i])
-	}
+	// for i := range models {
+	s.AddMesh(&models[0])
+	s.AddMesh(&models[1])
+	// }
 
 	s.AddLight(lighting.NewLight(
 		lighting.Directional, transforms.NewVec3(1, -1, 0), shapes.White,
