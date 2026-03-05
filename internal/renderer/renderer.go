@@ -303,7 +303,11 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 						fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
 						viewDir := fragPos.Normalized().Scale(-1)
 
-						specularStrength := float32(100) // load from mesh data
+						specularStrength := float32(0)
+						if triangle.Specular != nil {
+							specularStrength = triangle.Specular.TexelIntensity(uvCoord)
+						}
+
 						result := transforms.NewVec3(0, 0, 0)
 						for _, l := range r.scene.Lights {
 							ambient := l.Color.Scale(r.scene.AmbientLightStrength)
@@ -322,8 +326,9 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							x16 := x8 * x8
 							x32 := x16 * x16
 							x64 := x32 * x32
+							x128 := x64 * x64
 
-							spec := x64
+							spec := x128
 							specular := l.Color.Scale(specularStrength * spec)
 							// specular
 

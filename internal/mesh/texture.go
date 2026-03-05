@@ -21,3 +21,11 @@ func (t *Texture) TexelColor(uv transforms.Vec2) color.RGBA {
 	i := h*t.width + w
 	return t.pixels[i]
 }
+
+func (t *Texture) TexelIntensity(uv transforms.Vec2) float32 {
+	w := int(uv.X*t.fWidth) & t.widthMask
+	h := int(uv.Y*t.fHeight) & t.heightMask
+
+	i := h*t.width + w
+	return float32(t.pixels[i].R) / 255
+}
