@@ -519,7 +519,7 @@ func (r *Renderer) renderMeshs() {
 						r.sHoutputList[0],
 						r.sHoutputList[i],
 						r.sHoutputList[i+1],
-						o.Mesh.Texture)
+						o.Mesh.Texture, o.Mesh.Normal, o.Mesh.Specular)
 
 					triangle.ShaderSmooth = t.ShaderSmooth
 					r.trianglesBuffer = append(r.trianglesBuffer, triangle)

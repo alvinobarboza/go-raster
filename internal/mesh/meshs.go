@@ -13,9 +13,16 @@ type MeshData struct {
 	Normals, NormalsWorld []transforms.Vec3
 	UV                    []transforms.Vec2
 	Texture               *Texture
+	Normal                *Texture
+	Specular              *Texture
 }
 
-func NewMesh(verts, normals []transforms.Vec3, uvs []transforms.Vec2, tris []Triangle, texture *Texture) MeshData {
+func NewMesh(
+	verts, normals []transforms.Vec3,
+	uvs []transforms.Vec2,
+	tris []Triangle,
+	texture, normal, specular *Texture) MeshData {
+
 	vertsWord := make([]transforms.Vec3, len(verts))
 	normalsWord := make([]transforms.Vec3, len(normals))
 	return MeshData{
@@ -26,6 +33,8 @@ func NewMesh(verts, normals []transforms.Vec3, uvs []transforms.Vec2, tris []Tri
 		VertsWorld:   vertsWord,
 		Tris:         tris,
 		Texture:      texture,
+		Normal:       normal,
+		Specular:     specular,
 	}
 }
 

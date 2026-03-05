@@ -80,7 +80,7 @@ func LoadTriangle(line string, shaderSmooth bool) []Triangle {
 	return tris
 }
 
-func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingReorder, flipNormals bool) (MeshData, error) {
+func LoadMeshFromFile(modelPath string, dPath, nPath, sPath string, zNegative, windingReorder, flipNormals bool) (MeshData, error) {
 	file, err := os.Open(modelPath)
 	if err != nil {
 		log.Println(err)
@@ -135,23 +135,28 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 		}
 	}
 
-	texture, err := LoadTexture(texturePath)
+	texture, err := LoadTexture(dPath)
 	if err != nil {
 		log.Println(err)
 		return MeshData{}, err
 	}
-
-	// Calculate avarege color for whole object, very hacky to be honest
-	var r, g, b int
-	for _, p := range texture.pixels {
-		r += int(p.R)
-		g += int(p.G)
-		b += int(p.B)
+	var normal *Texture
+	var specular *Texture
+	if nPath != "" {
+		normal, err = LoadTexture(nPath)
+		if err != nil {
+			log.Println(err)
+			return MeshData{}, err
+		}
 	}
 
-	r /= len(texture.pixels)
-	g /= len(texture.pixels)
-	b /= len(texture.pixels)
+	if sPath != "" {
+		specular, err = LoadTexture(sPath)
+		if err != nil {
+			log.Println(err)
+			return MeshData{}, err
+		}
+	}
 
 	var tempV, tempUV, tempN int
 	for i := range len(tris) {
@@ -168,7 +173,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 		}
 	}
 
-	return NewMesh(verts, normals, uvs, tris, texture), nil
+	return NewMesh(verts, normals, uvs, tris, texture, normal, specular), nil
 }
 
 func getPixels(file io.Reader) ([]color.RGBA, int, int, error) {

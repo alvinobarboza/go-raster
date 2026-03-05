@@ -52,17 +52,21 @@ type FullTriangle struct {
 
 	DepthZ1, DepthZ2, DepthZ3 float32
 
-	Texture *Texture
+	Texture  *Texture
+	Normal   *Texture
+	Specular *Texture
 
 	ShaderSmooth bool
 }
 
-func NewFullTriangle(v1, v2, v3 ClippedVertex, t *Texture) FullTriangle {
+func NewFullTriangle(v1, v2, v3 ClippedVertex, t, n, s *Texture) FullTriangle {
 	return FullTriangle{
-		V1:      v1,
-		V2:      v2,
-		V3:      v3,
-		Texture: t,
+		V1:       v1,
+		V2:       v2,
+		V3:       v3,
+		Texture:  t,
+		Normal:   n,
+		Specular: s,
 	}
 }
 

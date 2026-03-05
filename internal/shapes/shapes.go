@@ -70,7 +70,7 @@ var trisCube = []mesh.Triangle{
 // CUBE === end
 
 func NewCube(pos, scale, rotation transforms.Vec3) mesh.Model {
-	m := mesh.NewMesh(vertsCube, nil, nil, trisCube, nil)
+	m := mesh.NewMesh(vertsCube, nil, nil, trisCube, nil, nil, nil)
 	return mesh.NewModel(&m, transforms.NewTransforms(pos, scale, rotation))
 }
 
@@ -96,6 +96,6 @@ func NewTriangle(pos, scale, rotation transforms.Vec3) mesh.Model {
 		{Z: -1},
 	}
 
-	m := mesh.NewMesh(tris_verts, tris_normal, uv_verts, tris_tris, nil)
+	m := mesh.NewMesh(tris_verts, tris_normal, uv_verts, tris_tris, nil, nil, nil)
 	return mesh.NewModel(&m, transforms.NewTransforms(pos, scale, rotation))
 }

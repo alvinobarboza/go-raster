@@ -105,8 +105,8 @@ func (c *Camera) NDCToVertexRay(p transforms.Vec2) transforms.Vec3 {
 	return transforms.NewVec3((p.X*c.AspectRatio)/c.FovScaling, p.Y/c.FovScaling, 1).Normalized()
 }
 
-func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t *mesh.Texture) mesh.FullTriangle {
-	triangle := mesh.NewFullTriangle(v1, v2, v3, t)
+func (c *Camera) ProjectTriangle(v1, v2, v3 mesh.ClippedVertex, t, n, s *mesh.Texture) mesh.FullTriangle {
+	triangle := mesh.NewFullTriangle(v1, v2, v3, t, n, s)
 
 	va := c.ProjectVertexToNDC(v1.V)
 	vb := c.ProjectVertexToNDC(v2.V)
