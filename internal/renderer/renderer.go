@@ -362,9 +362,9 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							lightIntensity := maths.Maxf(nCoord.DotByVec3(l.DirectionWorld), 0)
 							diff := l.Color.Scale(lightIntensity)
 
-							// specular
-							reflectDir := transforms.ReflectRay(l.DirectionWorld, nCoord).Normalized()
-							dot := maths.Maxf(viewDir.DotByVec3(reflectDir), 0.0)
+							// specular Blinn-Phong
+							halfwayDir := l.DirectionWorld.Add(viewDir).Normalized()
+							dot := maths.Maxf(nCoord.DotByVec3(halfwayDir), 0.0)
 
 							// math.pow unrolled
 							x2 := dot * dot
