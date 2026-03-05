@@ -45,7 +45,7 @@ func TestMeshLoader(t *testing.T) {
 			V3: 1,
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
@@ -68,7 +68,7 @@ func TestMeshLoader(t *testing.T) {
 			U3: 1,
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
@@ -94,7 +94,7 @@ func TestMeshLoader(t *testing.T) {
 			N3: 1,
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
@@ -123,7 +123,7 @@ func TestMeshLoader(t *testing.T) {
 			N3: 1,
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 1 {
 			t.Error("Didn't parse anything")
@@ -156,7 +156,7 @@ func TestMeshLoader(t *testing.T) {
 			},
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 2 {
 			t.Error("Didn't parse anything")
@@ -196,7 +196,7 @@ func TestMeshLoader(t *testing.T) {
 			},
 		}
 
-		got := LoadTriangle(lineToParse)
+		got := LoadTriangle(lineToParse, true)
 
 		if len(got) != 3 {
 			t.Error("Didn't parse anything")

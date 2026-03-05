@@ -51,7 +51,7 @@ func loadTriangleMetaData(indexes string) (int, int, int) {
 	return vertex - 1, normal - 1, uv - 1
 }
 
-func LoadTriangle(line string) []Triangle {
+func LoadTriangle(line string, shaderSmooth bool) []Triangle {
 	tris := make([]Triangle, 0)
 
 	line = strings.Replace(line, "\n", "", 1)
@@ -65,7 +65,7 @@ func LoadTriangle(line string) []Triangle {
 	origin := data[0]
 	for {
 		tmpData := data[offset:cursor]
-		t := Triangle{}
+		t := Triangle{ShaderSmooth: shaderSmooth}
 		t.V1, t.N1, t.U1 = loadTriangleMetaData(origin)
 		t.V2, t.N2, t.U2 = loadTriangleMetaData(tmpData[1])
 		t.V3, t.N3, t.U3 = loadTriangleMetaData(tmpData[2])
@@ -93,6 +93,7 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 	normals := make([]transforms.Vec3, 0)
 	uvs := make([]transforms.Vec2, 0)
 	tris := make([]Triangle, 0)
+	shaderSmooth := false
 
 	for {
 		line, err := scanner.ReadString('\n')
@@ -107,11 +108,11 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 			return MeshData{}, err
 		}
 		if len(line) > 2 {
-			switch line[:2] {
-			case "v ":
+			switch {
+			case strings.HasPrefix(line, "v "):
 				x, y, z := LoadVec3(line, 3, zNegative)
 				verts = append(verts, transforms.NewVec3(x, y, z))
-			case "vn":
+			case strings.HasPrefix(line, "vn"):
 				x, y, z := LoadVec3(line, 3, zNegative)
 				if flipNormals {
 					x = -x
@@ -119,13 +120,18 @@ func LoadMeshFromFile(modelPath string, texturePath string, zNegative, windingRe
 					z = -z
 				}
 				normals = append(normals, transforms.NewVec3(x, y, z))
-			case "vt":
+			case strings.HasPrefix(line, "vt"):
 				x, y, _ := LoadVec3(line, 2, zNegative)
 				uvs = append(uvs, transforms.NewVec2(x, y))
-			case "f ":
-				t := LoadTriangle(line)
+			case strings.HasPrefix(line, "f "):
+				t := LoadTriangle(line, shaderSmooth)
 				tris = append(tris, t...)
+			case strings.HasPrefix(line, "s 0") || strings.HasPrefix(line, "s off"):
+				shaderSmooth = false
+			case strings.HasPrefix(line, "s 1"):
+				shaderSmooth = true
 			}
+
 		}
 	}
 

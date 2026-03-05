@@ -287,11 +287,14 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 					pColor := triangle.Texture.TexelColor(uvCoord)
 
 					if r.RenderLight {
-						n1 := triangle.N1z.Scale(alpha)
-						n2 := triangle.N2z.Scale(beta)
-						n3 := triangle.N3z.Scale(gama)
+						nCoord := triangle.N1z
+						if triangle.ShaderSmooth {
+							n1 := triangle.N1z.Scale(alpha)
+							n2 := triangle.N2z.Scale(beta)
+							n3 := triangle.N3z.Scale(gama)
 
-						nCoord := n1.Add(n2).Add(n3).Divide(depth).Normalized()
+							nCoord = n1.Add(n2).Add(n3).Divide(depth).Normalized()
+						}
 
 						vz1 := triangle.V1z.Scale(alpha)
 						vz2 := triangle.V2z.Scale(beta)
@@ -300,7 +303,7 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 						fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
 						viewDir := fragPos.Normalized().Scale(-1)
 
-						specularStrength := float32(1) // load from mesh data
+						specularStrength := float32(100) // load from mesh data
 						result := transforms.NewVec3(0, 0, 0)
 						for _, l := range r.scene.Lights {
 							ambient := l.Color.Scale(r.scene.AmbientLightStrength)
@@ -518,6 +521,7 @@ func (r *Renderer) renderMeshs() {
 						r.sHoutputList[i+1],
 						o.Mesh.Texture)
 
+					triangle.ShaderSmooth = t.ShaderSmooth
 					r.trianglesBuffer = append(r.trianglesBuffer, triangle)
 				}
 			}

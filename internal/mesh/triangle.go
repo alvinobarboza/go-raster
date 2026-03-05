@@ -5,9 +5,10 @@ import (
 )
 
 type Triangle struct {
-	V1, V2, V3 int
-	U1, U2, U3 int
-	N1, N2, N3 int
+	V1, V2, V3   int
+	U1, U2, U3   int
+	N1, N2, N3   int
+	ShaderSmooth bool
 }
 
 func (t *Triangle) BackFaceCulling(verts, normals []transforms.Vec3) bool {
@@ -24,10 +25,12 @@ type ClippedVertex struct {
 }
 
 type FullTriangle struct {
+	// World * View(Camera Space) Matrix
 	V1 ClippedVertex
 	V2 ClippedVertex
 	V3 ClippedVertex
 
+	// World * View(Camera Space) Matrix
 	V1z transforms.Vec3
 	V2z transforms.Vec3
 	V3z transforms.Vec3
@@ -40,6 +43,7 @@ type FullTriangle struct {
 	UV2z transforms.Vec2
 	UV3z transforms.Vec2
 
+	// World * View(Camera Space) Matrix - just rotation
 	N1z transforms.Vec3
 	N2z transforms.Vec3
 	N3z transforms.Vec3
@@ -49,6 +53,8 @@ type FullTriangle struct {
 	DepthZ1, DepthZ2, DepthZ3 float32
 
 	Texture *Texture
+
+	ShaderSmooth bool
 }
 
 func NewFullTriangle(v1, v2, v3 ClippedVertex, t *Texture) FullTriangle {
