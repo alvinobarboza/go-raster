@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"fmt"
+	"math"
 	"sync"
 	"testing"
 )
@@ -236,5 +237,41 @@ func TestTileGen(t *testing.T) {
 			}
 		}
 
+	})
+}
+
+func BenchmarkPow(b *testing.B) {
+	b.Run("pow", func(b *testing.B) {
+		for b.Loop() {
+			p1 := float32(3)
+			exp := float32(50)
+			p := math.Pow(float64(p1), float64(exp))
+			p++
+		}
+	})
+
+	b.Run("for", func(b *testing.B) {
+		for b.Loop() {
+			p := 3
+			i := p
+			for range 50 - 1 {
+				p *= i
+			}
+			p++
+		}
+	})
+
+	b.Run("unrolled", func(b *testing.B) {
+		for b.Loop() {
+			p := 3
+			x2 := p * p
+			x4 := x2 * x2
+			x8 := x4 * x4
+			x16 := x8 * x8
+			x32 := x16 * x16
+			x64 := x32 * x32
+
+			x64++
+		}
 	})
 }
