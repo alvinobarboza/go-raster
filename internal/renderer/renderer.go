@@ -263,6 +263,25 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 		w0 = v0 -> v1 distance to v2 = c = tri.v3
 	*/
 
+	// AI generated start
+	// Calculate edges in camera/world space
+	edge1 := triangle.V2z.Subtract(triangle.V1z)
+	edge2 := triangle.V3z.Subtract(triangle.V1z)
+
+	// Calculate edges in UV space (use raw UVs, not perspective-divided)
+	deltaUV1 := triangle.V2.U.Subtract(triangle.V1.U)
+	deltaUV2 := triangle.V3.U.Subtract(triangle.V1.U)
+
+	// Calculate fractional inverse
+	f := 1.0 / (deltaUV1.X*deltaUV2.Y - deltaUV2.X*deltaUV1.Y)
+
+	tangent := transforms.NewVec3(
+		f*(deltaUV2.Y*edge1.X-deltaUV1.Y*edge2.X),
+		f*(deltaUV2.Y*edge1.Y-deltaUV1.Y*edge2.Y),
+		f*(deltaUV2.Y*edge1.Z-deltaUV1.Y*edge2.Z),
+	).Normalized()
+	// AI generated end
+
 	for y := triangle.Aabb2.Min.Y; y < triangle.Aabb2.Max.Y; y++ {
 		w0 := w0Row
 		w1 := w1Row
@@ -294,6 +313,34 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							n3 := triangle.N3z.Scale(gama)
 
 							nCoord = n1.Add(n2).Add(n3).Divide(depth).Normalized()
+						}
+
+						if triangle.Normal != nil {
+							// AI generated start
+							nMapColor := triangle.Normal.TexelColor(uvCoord)
+
+							// normal from [0, 255] to [-1.0, 1.0]
+							nMap := transforms.Vec3{
+								X: (float32(nMapColor.R) / 127.5) - 1.0,
+								Y: (float32(nMapColor.G) / 127.5) - 1.0,
+								Z: (float32(nMapColor.B) / 127.5) - 1.0,
+							}
+
+							// Gram-Schmidt orthogonalization to ensure T is orthogonal to the interpolated N
+							dotNT := nCoord.DotByVec3(tangent)
+							t := tangent.Subtract(nCoord.Scale(dotNT)).Normalized()
+
+							// Calculate Bitangent (B = N x T)
+							b := nCoord.Cross(t)
+
+							// 5. Transform the sampled normal from Tangent Space to View/World Space
+							// nCoord = T*nMap.X + B*nMap.Y + N*nMap.Z
+							tScaled := t.Scale(nMap.X)
+							bScaled := b.Scale(nMap.Y)
+							nScaled := nCoord.Scale(nMap.Z)
+
+							nCoord = tScaled.Add(bScaled).Add(nScaled).Normalized()
+							// AI generated end
 						}
 
 						vz1 := triangle.V1z.Scale(alpha)
