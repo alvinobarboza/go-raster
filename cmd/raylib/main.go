@@ -54,10 +54,9 @@ func main() {
 		panic(err)
 	}
 
-	// for i := range models {
-	s.AddMesh(&models[0])
-	s.AddMesh(&models[1])
-	// }
+	for i := range models {
+		s.AddMesh(&models[i])
+	}
 
 	s.AddLight(lighting.NewLight(
 		lighting.Directional, transforms.NewVec3(1, -1, 0), 3, shapes.Gray,
