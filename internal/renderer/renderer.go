@@ -355,12 +355,16 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							specularStrength = triangle.Specular.TexelIntensity(uvCoord)
 						}
 
-						result := transforms.NewVec3(0, 0, 0)
+						result := transforms.NewVec3(
+							float32(pColor.R)/255,
+							float32(pColor.G)/255,
+							float32(pColor.B)/255,
+						)
 						for _, l := range r.scene.Lights {
 							ambient := l.Color.Scale(r.scene.AmbientLightStrength)
 
 							lightIntensity := maths.Maxf(nCoord.DotByVec3(l.DirectionWorld), 0)
-							diff := l.Color.Scale(lightIntensity)
+							diff := l.Color.Scale(lightIntensity * l.Intensity)
 
 							// specular Blinn-Phong
 							halfwayDir := l.DirectionWorld.Add(viewDir).Normalized()
@@ -379,12 +383,12 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							specular := l.Color.Scale(specularStrength * spec)
 							// specular
 
-							result = diff.Add(result).Add(ambient).Add(specular)
+							result = result.Multiply(diff.Add(ambient)).Add(specular)
 						}
 
-						pColor.R = uint8(float32(pColor.R) * maths.Minf(result.X, 1))
-						pColor.G = uint8(float32(pColor.G) * maths.Minf(result.Y, 1))
-						pColor.B = uint8(float32(pColor.B) * maths.Minf(result.Z, 1))
+						pColor.R = uint8(float32(255) * maths.Minf(result.X, 1))
+						pColor.G = uint8(float32(255) * maths.Minf(result.Y, 1))
+						pColor.B = uint8(float32(255) * maths.Minf(result.Z, 1))
 					}
 
 					r.scene.ActiveCam.PutPixel(xx, yy, pColor, depth)

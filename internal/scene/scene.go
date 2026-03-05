@@ -18,7 +18,7 @@ func NewScene(c *camera.Camera) *Scene {
 		ActiveCam:            c,
 		Objects:              make([]*mesh.Model, 0),
 		Lights:               make([]lighting.Light, 0),
-		AmbientLightStrength: 0.1, // fixed for now
+		AmbientLightStrength: 0.2, // fixed for now
 	}
 }
 

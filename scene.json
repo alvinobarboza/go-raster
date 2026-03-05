@@ -2,6 +2,7 @@
     {
         "meshpath": "./assets/psx_pizza_doggy/table_large_2.obj",
         "diffuseTexture": "./assets/psx_pizza_doggy/wood_3.png",
+        "specularTexture":"./assets/psx_pizza_doggy/wood_specular.png",
         "position": { "x": 0.0, "y": 0.0, "z": 1.0 },
         "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
         "scale": { "x": 1.0, "y": 1.0, "z": 1.0 },

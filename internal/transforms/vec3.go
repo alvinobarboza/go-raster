@@ -74,6 +74,14 @@ func (v Vec3) Subtract(v2 Vec3) Vec3 {
 	}
 }
 
+func (v Vec3) Multiply(v2 Vec3) Vec3 {
+	return Vec3{
+		X: v.X * v2.X,
+		Y: v.Y * v2.Y,
+		Z: v.Z * v2.Z,
+	}
+}
+
 func (v Vec3) LerpTo(b Vec3, ratio float32) Vec3 {
 	if ratio > 1 {
 		return b
