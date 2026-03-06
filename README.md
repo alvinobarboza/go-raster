@@ -33,6 +33,9 @@ Rasterizer implementation using barycentric coordinates.
         -   [ ] Point light
         -   [ ] Spot light
     -   [ ] Shadow map
+-   [x] Custom math library (float32 for performance - Avoid too much dependency on raylib, if I want to change windowing/input library)
+    -   [x] Custom Vector math
+    -   [x] Custom Matrix math
 -   [ ] More...
 
 # Building
