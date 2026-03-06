@@ -79,17 +79,20 @@ func (r *Renderer) UpdateTiles() {
 		r.tileSize = MinimumTileSize
 	}
 
-	if r.tiles != nil {
-		r.tiles = RecalculateTiles(
-			float32(r.scene.ActiveCam.Width),
-			float32(r.scene.ActiveCam.Height),
-			float32(r.tileSize),
-			r.biggestTriCount,
-			r.tiles,
-		)
-		r.tilesInUse = make([]int, len(r.tiles))
-		return
-	}
+	// TODO: Better recalculation, since resizing now, will cause high memory usage
+	// and it's only freed after GC
+
+	// if r.tiles != nil {
+	// 	r.tiles = RecalculateTiles(
+	// 		float32(r.scene.ActiveCam.Width),
+	// 		float32(r.scene.ActiveCam.Height),
+	// 		float32(r.tileSize),
+	// 		r.biggestTriCount,
+	// 		r.tiles,
+	// 	)
+	// 	r.tilesInUse = make([]int, len(r.tiles))
+	// 	return
+	// }
 
 	r.tiles = NewTileSet(
 		float32(r.scene.ActiveCam.Width),

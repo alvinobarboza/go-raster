@@ -22,7 +22,7 @@ const (
 	NearPlane = 0.2
 	FarPlane  = 100
 
-	Threads  = 4
+	Threads  = 6
 	TileSize = 140
 )
 
