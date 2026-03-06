@@ -3,6 +3,7 @@ package lighting
 import (
 	"image/color"
 
+	"github.com/alvinobarboza/go-raster/internal/camera"
 	"github.com/alvinobarboza/go-raster/internal/transforms"
 )
 
@@ -19,6 +20,8 @@ type Light struct {
 
 	Direction      transforms.Vec3
 	DirectionWorld transforms.Vec3
+
+	SmCamera *camera.ShadowCamera
 }
 
 func NewLight(t LightType, d transforms.Vec3, i float32, color color.RGBA) Light {
