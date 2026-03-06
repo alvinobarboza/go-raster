@@ -49,13 +49,16 @@ func main() {
 
 	s := scene.NewScene(camera)
 
+	// Sky box should always at 0 index
 	models, err := scene.LoadSceneFromJSON("./scene.json")
 	if err != nil {
 		panic(err)
 	}
 
-	for i := range models {
-		s.AddMesh(&models[i])
+	s.SkyBox = &models[0]
+
+	for i := range len(models) - 1 {
+		s.AddMesh(&models[i+1])
 	}
 
 	s.AddLight(lighting.NewLight(

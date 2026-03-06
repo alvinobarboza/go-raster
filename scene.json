@@ -1,5 +1,15 @@
 [
     {
+        "meshpath": "./assets/AllSkyFree_v1/sky.obj",
+        "diffuseTexture": "./assets/AllSkyFree_v1/sky.png",
+        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "scale": { "x": 0.9, "y": 0.9, "z": 0.9 },
+        "windingReorder": true,
+        "zNegative": false,
+        "flipNormals": true
+    },
+    {
         "meshpath": "./assets/psx_pizza_doggy/table_large_2.obj",
         "diffuseTexture": "./assets/psx_pizza_doggy/wood_3.png",
         "specularTexture":"./assets/psx_pizza_doggy/wood_specular.png",
@@ -21,16 +31,6 @@
         "windingReorder": true,
         "zNegative": true,
         "flipNormals": false
-    },
-    {
-        "meshpath": "./assets/AllSkyFree_v1/sky.obj",
-        "diffuseTexture": "./assets/AllSkyFree_v1/sky.png",
-        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "rotation": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "scale": { "x": 0.9, "y": 0.9, "z": 0.9 },
-        "windingReorder": true,
-        "zNegative": false,
-        "flipNormals": true
     },
     {
         "meshpath": "./assets/psx_pizza_doggy/floor_ceiling_1.obj",

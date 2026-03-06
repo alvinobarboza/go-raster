@@ -509,99 +509,107 @@ func (r *Renderer) singlethreadRender() {
 	}
 }
 
-func (r *Renderer) renderMeshs() {
+func (r *Renderer) renderMesh(o *mesh.Model) {
+	matTransform := r.scene.ActiveCam.Transforms.MatrixTransforms.MultiplyByMatrix(o.Transforms.MatrixTransforms)
+	matRoation := r.scene.ActiveCam.Transforms.RotationMat.MultiplyByMatrix(o.Transforms.RotationMat)
 
-	for i := range r.scene.Lights {
-		// rotate and invert, as the dot expects the normal to be aligned wiht the light, in other worlds,
-		// light normal is opposit of its direction
-		r.scene.Lights[i].DirectionWorld = r.scene.ActiveCam.Transforms.RotationMat.MultiplyByVec3(r.scene.Lights[i].Direction).Normalized().Scale(-1)
+	o.BoundingSphere.CenterWord = matTransform.MultiplyByVec3(o.BoundingSphere.Center)
+
+	if !r.scene.ActiveCam.Frustum.IsBoundsInsideFrustum(&o.BoundingSphere) {
+		return
 	}
 
-	for _, o := range r.scene.Objects {
-		matTransform := r.scene.ActiveCam.Transforms.MatrixTransforms.MultiplyByMatrix(o.Transforms.MatrixTransforms)
-		matRoation := r.scene.ActiveCam.Transforms.RotationMat.MultiplyByMatrix(o.Transforms.RotationMat)
+	for i := range len(o.Mesh.Verts) {
+		o.Mesh.VertsWorld[i] = matTransform.MultiplyByVec3(o.Mesh.Verts[i])
+	}
 
-		o.BoundingSphere.CenterWord = matTransform.MultiplyByVec3(o.BoundingSphere.Center)
+	for i := range len(o.Mesh.Normals) {
+		o.Mesh.NormalsWorld[i] = matRoation.MultiplyByVec3(o.Mesh.Normals[i])
+	}
 
-		if !r.scene.ActiveCam.Frustum.IsBoundsInsideFrustum(&o.BoundingSphere) {
+	r.trianglesBuffer = r.trianglesBuffer[:0]
+	for _, t := range o.Mesh.Tris {
+		if !t.BackFaceCulling(o.Mesh.VertsWorld, o.Mesh.NormalsWorld) {
 			continue
 		}
 
-		for i := range len(o.Mesh.Verts) {
-			o.Mesh.VertsWorld[i] = matTransform.MultiplyByVec3(o.Mesh.Verts[i])
+		v1 := mesh.ClippedVertex{
+			V: o.Mesh.VertsWorld[t.V1],
+			N: o.Mesh.NormalsWorld[t.N1],
+			U: o.Mesh.UV[t.U1],
 		}
 
-		for i := range len(o.Mesh.Normals) {
-			o.Mesh.NormalsWorld[i] = matRoation.MultiplyByVec3(o.Mesh.Normals[i])
+		v2 := mesh.ClippedVertex{
+			V: o.Mesh.VertsWorld[t.V2],
+			N: o.Mesh.NormalsWorld[t.N2],
+			U: o.Mesh.UV[t.U2],
 		}
 
-		r.trianglesBuffer = r.trianglesBuffer[:0]
-		for _, t := range o.Mesh.Tris {
-			if !t.BackFaceCulling(o.Mesh.VertsWorld, o.Mesh.NormalsWorld) {
-				continue
-			}
-
-			v1 := mesh.ClippedVertex{
-				V: o.Mesh.VertsWorld[t.V1],
-				N: o.Mesh.NormalsWorld[t.N1],
-				U: o.Mesh.UV[t.U1],
-			}
-
-			v2 := mesh.ClippedVertex{
-				V: o.Mesh.VertsWorld[t.V2],
-				N: o.Mesh.NormalsWorld[t.N2],
-				U: o.Mesh.UV[t.U2],
-			}
-
-			v3 := mesh.ClippedVertex{
-				V: o.Mesh.VertsWorld[t.V3],
-				N: o.Mesh.NormalsWorld[t.N3],
-				U: o.Mesh.UV[t.U3],
-			}
-
-			r.sHoutputList = r.sHoutputList[:0]
-			r.sHinputList = r.sHinputList[:3]
-
-			r.sHoutputList = append(r.sHoutputList, v1)
-			r.sHoutputList = append(r.sHoutputList, v2)
-			r.sHoutputList = append(r.sHoutputList, v3)
-
-			r.clipTriangles()
-
-			if len(r.sHoutputList) > 2 {
-				for i := 1; i < len(r.sHoutputList)-1; i++ {
-
-					triangle := r.scene.ActiveCam.ProjectTriangle(
-						r.sHoutputList[0],
-						r.sHoutputList[i],
-						r.sHoutputList[i+1],
-						o.Mesh.Texture, o.Mesh.Normal, o.Mesh.Specular)
-
-					triangle.ShaderSmooth = t.ShaderSmooth
-					r.trianglesBuffer = append(r.trianglesBuffer, triangle)
-				}
-			}
+		v3 := mesh.ClippedVertex{
+			V: o.Mesh.VertsWorld[t.V3],
+			N: o.Mesh.NormalsWorld[t.N3],
+			U: o.Mesh.UV[t.U3],
 		}
 
-		if r.RenderMultithreaded {
-			r.multithreadRender()
-		} else {
-			r.singlethreadRender()
+		r.sHoutputList = r.sHoutputList[:0]
+		r.sHinputList = r.sHinputList[:3]
+
+		r.sHoutputList = append(r.sHoutputList, v1)
+		r.sHoutputList = append(r.sHoutputList, v2)
+		r.sHoutputList = append(r.sHoutputList, v3)
+
+		r.clipTriangles()
+
+		if len(r.sHoutputList) > 2 {
+			for i := 1; i < len(r.sHoutputList)-1; i++ {
+
+				triangle := r.scene.ActiveCam.ProjectTriangle(
+					r.sHoutputList[0],
+					r.sHoutputList[i],
+					r.sHoutputList[i+1],
+					o.Mesh.Texture, o.Mesh.Normal, o.Mesh.Specular)
+
+				triangle.ShaderSmooth = t.ShaderSmooth
+				r.trianglesBuffer = append(r.trianglesBuffer, triangle)
+			}
 		}
+	}
+
+	if r.RenderMultithreaded {
+		r.multithreadRender()
+	} else {
+		r.singlethreadRender()
+	}
+}
+
+func (r *Renderer) renderMeshs() {
+	for i := range r.scene.Objects {
+		r.renderMesh(r.scene.Objects[i])
 		// break
 	}
 }
 
-func (r *Renderer) Render() {
-	r.scene.ActiveCam.ClearCanvas()
-
+func (r *Renderer) resetTiles() {
 	if r.RenderMultithreaded {
 		for i := range r.tiles {
 			r.tiles[i].WasActivatedOnce = false
 		}
 	}
 
+}
+func (r *Renderer) renderSkybox() {
+	state := r.RenderLight
+	r.RenderLight = false
+	r.renderMesh(r.scene.SkyBox)
+	r.RenderLight = state
+}
+
+func (r *Renderer) Render() {
+	r.scene.ActiveCam.ClearCanvas()
+	r.scene.UpdateLights()
+	r.resetTiles()
 	r.renderMeshs()
+	r.renderSkybox()
 
 	if r.RenderMultithreaded && r.RenderTileBoundaries {
 		r.drawTileBoundaries()
