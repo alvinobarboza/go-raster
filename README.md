@@ -55,7 +55,7 @@ $ .\buildAndRunRay.sh
 
 # Showcase
 
-## Simple scene with sigle direction light lighting
+## Simple scene with single directional light
 
 ![Scene rendering](./lighting.png)
 
