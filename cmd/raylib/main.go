@@ -62,7 +62,7 @@ func main() {
 	}
 
 	s.AddLight(lighting.NewLight(
-		lighting.Directional, transforms.NewVec3(1, -1, 0), 3, shapes.Gray,
+		lighting.Directional, transforms.NewVec3(1, -1, 0), 1.2, shapes.White,
 	))
 
 	renderer := renderer.NewRenderer(Threads, TileSize)
