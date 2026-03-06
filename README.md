@@ -12,7 +12,7 @@ Rasterizer implementation using barycentric coordinates.
 -   [x] Clipping
     -   [x] Full frustum culling - Near, far, left, right, top and bottom planes.
     -   [x] Automatically calculate frustum on screen resize.
-    -   [x] Dynamic mesh generation on clipping plane.
+    -   [x] Dynamic mesh generation on clipping plane. (Sutherland–Hodgman algorithm)
 -   [x] Back face culling
 -   [x] Depth buffer
 -   [x] Simple OBJ parser
@@ -30,6 +30,8 @@ Rasterizer implementation using barycentric coordinates.
     -   [x] Phong / Blinn Phong
     -   [x] Lights
         -   [x] Directional light
+        -   [ ] Point light
+        -   [ ] Spot light
     -   [ ] Shadow map
 -   [ ] More...
 
@@ -40,16 +42,22 @@ With this in mind, just do the following;
 
 -   build process expects a `dist` directory, so, you should create it `mkdir dist`(on powershell all command will work as expected).
 
+Windows(Powershell);
 ```bash
 $ .\buildrunRay.ps1
 ```
 Or
 
+Linux
 ```bash
 $ .\buildAndRunRay.sh
 ```
 
 # Showcase
+
+## Simple scene with sigle direction light lighting
+
+![Scene rendering](./lighting.png)
 
 ## Simple scene without lighting
 

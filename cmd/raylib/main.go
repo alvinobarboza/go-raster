@@ -43,8 +43,8 @@ func main() {
 		NearPlane,
 		FarPlane,
 		fov,
-		transforms.NewVec3(0, 1.2, 0),
-		transforms.NewVec3(0, 0, 0),
+		transforms.NewVec3(0, 1.5, -1),
+		transforms.NewVec3(-20, 0, 0),
 	)
 
 	s := scene.NewScene(camera)
