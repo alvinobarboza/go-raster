@@ -369,24 +369,28 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							lightIntensity := maths.Maxf(nCoord.DotByVec3(l.DirectionWorld), 0)
 							diff := l.Color.Scale(lightIntensity * l.Intensity)
 
-							// specular Blinn-Phong
-							halfwayDir := l.DirectionWorld.Add(viewDir).Normalized()
-							dot := maths.Maxf(nCoord.DotByVec3(halfwayDir), 0.0)
+							result = result.Multiply(diff.Add(ambient))
 
-							// math.pow unrolled
-							x2 := dot * dot
-							x4 := x2 * x2
-							x8 := x4 * x4
-							x16 := x8 * x8
-							x32 := x16 * x16
-							x64 := x32 * x32
-							x128 := x64 * x64
+							if specularStrength > 0 {
+								// specular Blinn-Phong
+								halfwayDir := l.DirectionWorld.Add(viewDir).Normalized()
+								dot := maths.Maxf(nCoord.DotByVec3(halfwayDir), 0.0)
 
-							spec := x128
-							specular := l.Color.Scale(specularStrength * spec)
+								// math.pow unrolled
+								x2 := dot * dot
+								x4 := x2 * x2
+								x8 := x4 * x4
+								x16 := x8 * x8
+								x32 := x16 * x16
+								x64 := x32 * x32
+								// x128 := x64 * x64
+
+								spec := x64
+								specular := l.Color.Scale(specularStrength * spec)
+								result = result.Add(specular)
+							}
 							// specular
 
-							result = result.Multiply(diff.Add(ambient)).Add(specular)
 						}
 
 						pColor.R = uint8(float32(255) * maths.Minf(result.X, 1))
