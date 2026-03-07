@@ -3,6 +3,7 @@ package renderer
 import (
 	"fmt"
 	"image/color"
+	"math"
 	"sync"
 
 	"github.com/alvinobarboza/go-raster/internal/maths"
@@ -205,14 +206,14 @@ func (r *Renderer) renderTriangleParallel(id uint) {
 			tri.Aabb2.Min.X = maths.Ceil32(maths.Maxf(tri.Aabb2.Min.X, tileAabb.Min.X))
 			tri.Aabb2.Max.X = maths.Floor32(maths.Minf(tri.Aabb2.Max.X, tileAabb.Max.X))
 
-			r.RenderTriangle(tri)
+			r.RenderTriangle(&tri)
 		}
 
 		r.wg.Done()
 	}
 }
 
-func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
+func (r *Renderer) RenderTriangle(triangle *mesh.FullTriangle) {
 
 	deltaW0Col := triangle.SPV0.Y - triangle.SPV1.Y
 	deltaW1Col := triangle.SPV1.Y - triangle.SPV2.Y
@@ -350,11 +351,11 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 
 						specularStrength := float32(0)
 						if triangle.Specular != nil {
-						vz1 := triangle.V1z.Scale(alpha)
-						vz2 := triangle.V2z.Scale(beta)
-						vz3 := triangle.V3z.Scale(gama)
+							vz1 := triangle.V1z.Scale(alpha)
+							vz2 := triangle.V2z.Scale(beta)
+							vz3 := triangle.V3z.Scale(gama)
 
-						fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
+							fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
 							viewDir = fragPos.Normalized().Scale(-1)
 							specularStrength = triangle.Specular.TexelIntensity(uvCoord)
 						}
@@ -493,8 +494,8 @@ func (r *Renderer) multithreadRender() {
 }
 
 func (r *Renderer) singlethreadRender() {
-	for _, t := range r.trianglesBuffer {
-		r.RenderTriangle(t)
+	for i := range r.trianglesBuffer {
+		r.RenderTriangle(&r.trianglesBuffer[i])
 	}
 	if r.scene.ActiveCam.RenderWire {
 		for _, t := range r.trianglesBuffer {
