@@ -346,15 +346,16 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 							// AI generated end
 						}
 
+						viewDir := transforms.Vec3{}
+
+						specularStrength := float32(0)
+						if triangle.Specular != nil {
 						vz1 := triangle.V1z.Scale(alpha)
 						vz2 := triangle.V2z.Scale(beta)
 						vz3 := triangle.V3z.Scale(gama)
 
 						fragPos := vz1.Add(vz2).Add(vz3).Divide(depth)
-						viewDir := fragPos.Normalized().Scale(-1)
-
-						specularStrength := float32(0)
-						if triangle.Specular != nil {
+							viewDir = fragPos.Normalized().Scale(-1)
 							specularStrength = triangle.Specular.TexelIntensity(uvCoord)
 						}
 
@@ -376,16 +377,7 @@ func (r *Renderer) RenderTriangle(triangle mesh.FullTriangle) {
 								halfwayDir := l.DirectionWorld.Add(viewDir).Normalized()
 								dot := maths.Maxf(nCoord.DotByVec3(halfwayDir), 0.0)
 
-								// math.pow unrolled
-								x2 := dot * dot
-								x4 := x2 * x2
-								x8 := x4 * x4
-								x16 := x8 * x8
-								x32 := x16 * x16
-								x64 := x32 * x32
-								// x128 := x64 * x64
-
-								spec := x64
+								spec := float32(math.Pow(float64(dot), 200))
 								specular := l.Color.Scale(specularStrength * spec)
 								result = result.Add(specular)
 							}
