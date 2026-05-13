@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 	"sync"
 	"testing"
@@ -273,5 +274,64 @@ func BenchmarkPow(b *testing.B) {
 
 			x64++
 		}
+	})
+}
+
+type pixelData struct {
+	color color.RGBA
+	depth float32
+}
+
+type chanData struct {
+	data  pixelData
+	index int
+}
+
+func setPixel(can []pixelData, data pixelData, i int) {
+	if i < len(can) && i >= 0 {
+		can[i] = data
+	}
+}
+
+func BenchmarkChanPixel(b *testing.B) {
+	b.Run("chan", func(b *testing.B) {
+		p := make(chan chanData)
+		canvasLength := 1920 * 1080
+		canvas := make([]pixelData, canvasLength)
+		for i := range canvasLength {
+			canvas[i] = pixelData{
+				color: color.RGBA{R: uint8(i % 255)},
+				depth: .4,
+			}
+		}
+
+		numWork := 6
+		worker := canvasLength / numWork
+		var wg sync.WaitGroup
+		for b.Loop() {
+			start := 0
+
+			for range numWork {
+				wg.Add(1)
+				go func() {
+					for i := range worker {
+						data := chanData{
+							data: pixelData{
+								color: color.RGBA{R: uint8(i % 255)},
+								depth: 1 / float32(i),
+							},
+							index: i + start,
+						}
+						p <- data
+					}
+					wg.Done()
+				}()
+				start += worker
+			}
+			for d := range p {
+				setPixel(canvas, d.data, d.index)
+			}
+		}
+
 	})
 }
