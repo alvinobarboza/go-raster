@@ -33,7 +33,7 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	factor := 3
+	factor := 2
 	sensitivity := float32(10)
 	fov := float32(53)
 	camera := camera.NewCamera(
@@ -215,7 +215,7 @@ func main() {
 			camera.MoveVetically(upDownCam)
 		}
 
-		renderer.Render()
+		renderer.RenderSimple()
 
 		rl.UpdateTexture(renderTexture, s.ActiveCam.Canvas)
 
