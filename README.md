@@ -1,3 +1,5 @@
+### Project being ported/continued [here](https://github.com/alvinobarboza/raster-cpp) in C++.
+
 # Tile Based Multithreaded Software Rasterizer in Go
 
 Calculations done by software and passed to an array of Colors to be render on a texture the size of the screen with auto resize calculation. Using [raylib-go](https://github.com/gen2brain/raylib-go) bindings to [raylib](https://github.com/raysan5/raylib)
